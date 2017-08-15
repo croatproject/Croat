@@ -1,5 +1,5 @@
 ### About
-Croat is a cryptocurrency based on the anonymous, open source CryptoNote algorithm, which has the objective of being the ALTCOIN OF THE CATALANS
+Croat is a cryptocurrency based on the anonymous, open source CryptoNote algorithm, which has the objective of being the ALTCOIN OF THE CATALANS.<br />
 More info at: <br />
 http://croat.cat
 
@@ -54,7 +54,6 @@ Ubuntu (tested on Ubuntu 16.04) / Mac dependencies install script:
 https://github.com/forknote/cryptonote-generator/blob/master/configure.sh
 
 ```
-
 ---
 This code is heavily based on ByteCoin and Forknote 
 Seed source - https://github.com/amjuarez/bytecoin
