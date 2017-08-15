@@ -56,4 +56,5 @@ https://github.com/forknote/cryptonote-generator/blob/master/configure.sh
 ```
 ---
 This code is heavily based on ByteCoin and Forknote 
-Seed source - https://github.com/amjuarez/bytecoin
+https://github.com/amjuarez/bytecoin
+https://github.com/forknote/forknote
