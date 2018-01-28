@@ -520,7 +520,7 @@ void Blockchain::rebuildCache() {
   m_multisignatureOutputs.clear();
   for (uint32_t b = 0; b < m_blocks.size(); ++b) {
     if (b % 1000 == 0) {
-      logger(INFO, BRIGHT_WHITE) << "Height " << b << " of " << m_blocks.size();
+      logger(INFO, BRIGHT_WHITE) << "Height " << b << " of " << m_blocks.size() << std::endl;
     }
     const BlockEntry& block = m_blocks[b];
     Crypto::Hash blockHash = get_block_hash(block.bl);
@@ -2369,7 +2369,7 @@ bool Blockchain::loadBlockchainIndices() {
 
     for (uint32_t b = 0; b < m_blocks.size(); ++b) {
       if (b % 1000 == 0) {
-        logger(INFO, BRIGHT_WHITE) << "Height " << b << " of " << m_blocks.size();
+        logger(INFO, BRIGHT_WHITE) << "Height " << b << " of " << m_blocks.size() << std::endl;
       }
       const BlockEntry& block = m_blocks[b];
       m_timestampIndex.add(block.bl.timestamp, get_block_hash(block.bl));

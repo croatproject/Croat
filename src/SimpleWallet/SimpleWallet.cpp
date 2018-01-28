@@ -712,7 +712,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
     success_msg_writer() <<
       "**********************************************************************\n" <<
       "Use \"help\" command to see the list of available commands.\n" <<
-      "**********************************************************************";
+      "**********************************************************************" << std::endl;
   }
 
   return true;
@@ -755,14 +755,14 @@ bool simple_wallet::new_wallet(const std::string &wallet_file, const std::string
     auto initError = f_initError.get();
     m_initResultPromise.reset(nullptr);
     if (initError) {
-      fail_msg_writer() << "failed to generate new wallet: " << initError.message();
+      fail_msg_writer() << "failed to generate new wallet: " << initError.message() << std::endl;
       return false;
     }
 
     try {
       CryptoNote::WalletHelper::storeWallet(*m_wallet, m_wallet_file);
     } catch (std::exception& e) {
-      fail_msg_writer() << "failed to save new wallet: " << e.what();
+      fail_msg_writer() << "failed to save new wallet: " << e.what() << std::endl;
       throw;
     }
 
@@ -774,7 +774,7 @@ bool simple_wallet::new_wallet(const std::string &wallet_file, const std::string
       "view key: " << Common::podToHex(keys.viewSecretKey);
   }
   catch (const std::exception& e) {
-    fail_msg_writer() << "failed to generate new wallet: " << e.what();
+    fail_msg_writer() << "failed to generate new wallet: " << e.what() << std::endl;
     return false;
   }
 
@@ -785,7 +785,7 @@ bool simple_wallet::new_wallet(const std::string &wallet_file, const std::string
     "Always use \"exit\" command when closing simplewallet to save\n" <<
     "current session's state. Otherwise, you will possibly need to synchronize \n" <<
     "your wallet again. Your wallet key is NOT under risk anyway.\n" <<
-    "**********************************************************************";
+    "**********************************************************************" << std::endl;
   return true;
 }
 //----------------------------------------------------------------------------------------------------
@@ -809,14 +809,14 @@ bool simple_wallet::new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey 
     auto initError = f_initError.get();
     m_initResultPromise.reset(nullptr);
     if (initError) {
-      fail_msg_writer() << "failed to generate new wallet: " << initError.message();
+      fail_msg_writer() << "failed to generate new wallet: " << initError.message() << std::endl;
       return false;
     }
 
     try {
       CryptoNote::WalletHelper::storeWallet(*m_wallet, m_wallet_file);
     } catch (std::exception& e) {
-      fail_msg_writer() << "failed to save new wallet: " << e.what();
+      fail_msg_writer() << "failed to save new wallet: " << e.what() << std::endl;
       throw;
     }
 
@@ -827,7 +827,7 @@ bool simple_wallet::new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey 
       "Imported wallet: " << m_wallet->getAddress() << std::endl;
   }
   catch (const std::exception& e) {
-    fail_msg_writer() << "failed to import wallet: " << e.what();
+    fail_msg_writer() << "failed to import wallet: " << e.what() << std::endl;
     return false;
   }
 
@@ -838,7 +838,7 @@ bool simple_wallet::new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey 
     "Always use \"exit\" command when closing simplewallet to save\n" <<
     "current session's state. Otherwise, you will possibly need to synchronize \n" <<
     "your wallet again. Your wallet key is NOT under risk anyway.\n" <<
-    "**********************************************************************";
+    "**********************************************************************" << std::endl;
   return true;
 }
 //----------------------------------------------------------------------------------------------------
@@ -877,7 +877,7 @@ bool simple_wallet::reset(const std::vector<std::string> &args) {
   }
 
   m_wallet->reset();
-  success_msg_writer(true) << "Reset completed successfully.";
+  success_msg_writer(true) << "Reset completed successfully." << std::endl;
 
   std::unique_lock<std::mutex> lock(m_walletSynchronizedMutex);
   while (!m_walletSynchronized) {
@@ -1427,7 +1427,7 @@ CryptoNote::Currency currency = currencyBuilder.currency();
 
       logger(INFO, BRIGHT_GREEN) << "Loaded ok";
     } catch (const std::exception& e)  {
-      logger(ERROR, BRIGHT_RED) << "Wallet initialize failed: " << e.what();
+      logger(ERROR, BRIGHT_RED) << "Wallet initialize failed: " << e.what() << std::endl;
       return 1;
     }
 
