@@ -322,6 +322,21 @@ struct COMMAND_RPC_GETBLOCKCOUNT {
   };
 };
 
+//-----------------------------------------------
+struct COMMAND_RPC_GET_PEER_LIST {
+	typedef EMPTY_STRUCT request;
+
+	struct response {
+		std::vector<std::string> peers;
+		std::string status;
+
+		void serialize(ISerializer &s) {
+			KV_MEMBER(peers)
+			KV_MEMBER(status)
+		}
+	};
+}; 
+
 struct COMMAND_RPC_GETBLOCKHASH {
   typedef std::vector<uint64_t> request;
   typedef std::string response;
