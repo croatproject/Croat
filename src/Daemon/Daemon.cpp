@@ -342,8 +342,8 @@ command_line::add_arg(desc_cmd_sett, arg_print_genesis_tx);
         std::cout << "Configuration error: Cannot open configuration file" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "Usage:" << std::endl;
-        std::cout << "Windows:   croatd.exe --config-file configs/dashcoin.conf" << std::endl;
-        std::cout << "Linux/Mac:   ./croatd --config-file configs/dashcoin.conf" << std::endl;
+        std::cout << "Windows:   croatd.exe --config-file configs/croat.conf" << std::endl;
+        std::cout << "Linux/Mac:   ./croatd --config-file configs/croat.conf" << std::endl;
         return false;
       }
       po::notify(vm);

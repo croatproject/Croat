@@ -1309,8 +1309,8 @@ int main(int argc, char* argv[]) {
       std::cout << "Configuration error: Cannot open configuration file" << std::endl;
       std::cout << "" << std::endl;
       std::cout << "Usage:" << std::endl;
-      std::cout << "Windows:   simplewallet.exe --config-file configs/dashcoin.conf" << std::endl;
-      std::cout << "Linux/Mac:   ./simplewallet --config-file configs/dashcoin.conf" << std::endl;
+      std::cout << "Windows:   simplewallet.exe --config-file configs/croat.conf" << std::endl;
+      std::cout << "Linux/Mac:   ./simplewallet --config-file configs/croat.conf" << std::endl;
       return false;
     }
     po::notify(vm);
