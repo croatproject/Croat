@@ -238,6 +238,9 @@ int CryptoNoteProtocolHandler::handleCommand(bool is_notify, int command, const 
 int CryptoNoteProtocolHandler::handle_notify_new_block(int command, NOTIFY_NEW_BLOCK::request& arg, CryptoNoteConnectionContext& context) {
   logger(Logging::TRACE) << context << "NOTIFY_NEW_BLOCK (hop " << arg.hop << ")";
 
+  context.msg2006=0;
+  context.msg2007=0;
+  
   updateObservedHeight(arg.current_blockchain_height, context);
 
   context.m_remote_blockchain_height = arg.current_blockchain_height;
@@ -290,6 +293,10 @@ int CryptoNoteProtocolHandler::handle_notify_new_block(int command, NOTIFY_NEW_B
 
 int CryptoNoteProtocolHandler::handle_notify_new_transactions(int command, NOTIFY_NEW_TRANSACTIONS::request& arg, CryptoNoteConnectionContext& context) {
   logger(Logging::TRACE) << context << "NOTIFY_NEW_TRANSACTIONS";
+
+  context.msg2006=0;
+  context.msg2007=0;
+
   if (context.m_state != CryptoNoteConnectionContext::state_normal)
     return 1;
 
@@ -320,6 +327,10 @@ int CryptoNoteProtocolHandler::handle_notify_new_transactions(int command, NOTIF
 
 int CryptoNoteProtocolHandler::handle_request_get_objects(int command, NOTIFY_REQUEST_GET_OBJECTS::request& arg, CryptoNoteConnectionContext& context) {
   logger(Logging::TRACE) << context << "NOTIFY_REQUEST_GET_OBJECTS";
+
+  context.msg2006=0;
+  context.msg2007=0;
+
   NOTIFY_RESPONSE_GET_OBJECTS::request rsp;
   if (!m_core.handle_get_objects(arg, rsp)) {
     logger(Logging::ERROR) << context << "failed to handle request NOTIFY_REQUEST_GET_OBJECTS, dropping connection";
@@ -333,6 +344,9 @@ int CryptoNoteProtocolHandler::handle_request_get_objects(int command, NOTIFY_RE
 
 int CryptoNoteProtocolHandler::handle_response_get_objects(int command, NOTIFY_RESPONSE_GET_OBJECTS::request& arg, CryptoNoteConnectionContext& context) {
   logger(Logging::TRACE) << context << "NOTIFY_RESPONSE_GET_OBJECTS";
+
+  context.msg2006=0;
+  context.msg2007=0;
 
   if (context.m_last_response_height > arg.current_blockchain_height) {
     logger(Logging::ERROR) << context << "sent wrong NOTIFY_HAVE_OBJECTS: arg.m_current_blockchain_height=" << arg.current_blockchain_height
@@ -474,6 +488,12 @@ bool CryptoNoteProtocolHandler::on_idle() {
 int CryptoNoteProtocolHandler::handle_request_chain(int command, NOTIFY_REQUEST_CHAIN::request& arg, CryptoNoteConnectionContext& context) {
   logger(Logging::TRACE) << context << "NOTIFY_REQUEST_CHAIN: m_block_ids.size()=" << arg.block_ids.size();
 
+  if ((context.msg2006 >= 5) && (context.msg2007 >= 5)) {
+    logger(Logging::ERROR, Logging::BRIGHT_RED) << context << "Failed to handle NOTIFY_REQUEST_CHAIN. 2006-2007 loop detected";
+    context.m_state = CryptoNoteConnectionContext::state_shutdown;
+    return 1;
+  }
+
   if (arg.block_ids.empty()) {
     logger(Logging::ERROR, Logging::BRIGHT_RED) << context << "Failed to handle NOTIFY_REQUEST_CHAIN. block_ids is empty";
     context.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -486,6 +506,8 @@ int CryptoNoteProtocolHandler::handle_request_chain(int command, NOTIFY_REQUEST_
     return 1;
   }
 
+  context.msg2006++;
+	
   NOTIFY_RESPONSE_CHAIN_ENTRY::request r;
   r.m_block_ids = m_core.findBlockchainSupplement(arg.block_ids, BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT, r.total_height, r.start_height);
 
@@ -566,6 +588,12 @@ int CryptoNoteProtocolHandler::handle_response_chain_entry(int command, NOTIFY_R
   logger(Logging::TRACE) << context << "NOTIFY_RESPONSE_CHAIN_ENTRY: m_block_ids.size()=" << arg.m_block_ids.size()
     << ", m_start_height=" << arg.start_height << ", m_total_height=" << arg.total_height;
 
+  if ((context.msg2006 >= 5) && (context.msg2007 >= 5)) {
+    logger(Logging::ERROR, Logging::BRIGHT_RED) << context << "Failed to handle NOTIFY_RESPONSE_CHAIN_ENTRY. 2006-2007 loop detected";
+    context.m_state = CryptoNoteConnectionContext::state_shutdown;
+    return 1;
+  }
+
   if (!arg.m_block_ids.size()) {
     logger(Logging::ERROR) << context << "sent empty m_block_ids, dropping connection";
     context.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -581,6 +609,8 @@ int CryptoNoteProtocolHandler::handle_response_chain_entry(int command, NOTIFY_R
     return 1;
   }
 
+  context.msg2007++;
+  
   context.m_remote_blockchain_height = arg.total_height;
   context.m_last_response_height = arg.start_height + static_cast<uint32_t>(arg.m_block_ids.size()) - 1;
 
@@ -605,6 +635,9 @@ int CryptoNoteProtocolHandler::handle_response_chain_entry(int command, NOTIFY_R
 int CryptoNoteProtocolHandler::handleRequestTxPool(int command, NOTIFY_REQUEST_TX_POOL::request& arg,
                                                      CryptoNoteConnectionContext& context) {
   logger(Logging::TRACE) << context << "NOTIFY_REQUEST_TX_POOL: txs.size() = " << arg.txs.size();
+
+  context.msg2006=0;
+  context.msg2007=0;
 
   std::vector<Transaction> addedTransactions;
   std::vector<Crypto::Hash> deletedTransactions;

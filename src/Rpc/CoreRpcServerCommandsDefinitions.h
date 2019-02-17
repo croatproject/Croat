@@ -268,6 +268,7 @@ struct COMMAND_RPC_GET_INFO {
 
   struct response {
     std::string status;
+    std::string version;    
     uint64_t height;
     uint64_t difficulty;
     uint64_t tx_count;
@@ -275,12 +276,14 @@ struct COMMAND_RPC_GET_INFO {
     uint64_t alt_blocks_count;
     uint64_t outgoing_connections_count;
     uint64_t incoming_connections_count;
+	uint64_t rpc_connections_count;    
     uint64_t white_peerlist_size;
     uint64_t grey_peerlist_size;
     uint32_t last_known_block_index;
 
     void serialize(ISerializer &s) {
       KV_MEMBER(status)
+      KV_MEMBER(version)      
       KV_MEMBER(height)
       KV_MEMBER(difficulty)
       KV_MEMBER(tx_count)
@@ -288,6 +291,7 @@ struct COMMAND_RPC_GET_INFO {
       KV_MEMBER(alt_blocks_count)
       KV_MEMBER(outgoing_connections_count)
       KV_MEMBER(incoming_connections_count)
+      KV_MEMBER(rpc_connections_count)      
       KV_MEMBER(white_peerlist_size)
       KV_MEMBER(grey_peerlist_size)
       KV_MEMBER(last_known_block_index)
@@ -322,6 +326,7 @@ struct COMMAND_RPC_GETBLOCKCOUNT {
   };
 };
 
+//-----------------------------------------------
 struct COMMAND_RPC_GET_PEER_LIST {
 	typedef EMPTY_STRUCT request;
 
@@ -335,6 +340,7 @@ struct COMMAND_RPC_GET_PEER_LIST {
 		}
 	};
 }; 
+
 
 struct COMMAND_RPC_GETBLOCKHASH {
   typedef std::vector<uint64_t> request;

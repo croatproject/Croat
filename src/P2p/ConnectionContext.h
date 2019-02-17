@@ -50,6 +50,8 @@ struct CryptoNoteConnectionContext {
   std::unordered_set<Crypto::Hash> m_requested_objects;
   uint32_t m_remote_blockchain_height = 0;
   uint32_t m_last_response_height = 0;
+  uint32_t msg2006 = 0;
+  uint32_t msg2007 = 0;
 };
 
 inline std::string get_protocol_state_string(CryptoNoteConnectionContext::state s) {
