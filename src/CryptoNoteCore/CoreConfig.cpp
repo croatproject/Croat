@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -35,4 +36,5 @@ void CoreConfig::init(const boost::program_options::variables_map& options) {
 
 void CoreConfig::initOptions(boost::program_options::options_description& desc) {
 }
+
 } //namespace CryptoNote

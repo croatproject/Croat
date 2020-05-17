@@ -1,4 +1,7 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019 The Karbo developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -27,7 +30,9 @@ enum class WalletServiceErrorCode {
   WRONG_KEY_FORMAT = 1,
   WRONG_PAYMENT_ID_FORMAT,
   WRONG_HASH_FORMAT,
-  OBJECT_NOT_FOUND
+  OBJECT_NOT_FOUND,
+  DUPLICATE_KEY,
+  KEYS_NOT_DETERMINISTIC
 };
 
 // custom category:
@@ -51,6 +56,8 @@ public:
       case WalletServiceErrorCode::WRONG_PAYMENT_ID_FORMAT: return "Wrong payment id format";
       case WalletServiceErrorCode::WRONG_HASH_FORMAT: return "Wrong block id format";
       case WalletServiceErrorCode::OBJECT_NOT_FOUND: return "Requested object not found";
+      case WalletServiceErrorCode::DUPLICATE_KEY: return "Duplicate key";
+      case WalletServiceErrorCode::KEYS_NOT_DETERMINISTIC: return "Keys are non-deterministic";
       default: return "Unknown error";
     }
   }

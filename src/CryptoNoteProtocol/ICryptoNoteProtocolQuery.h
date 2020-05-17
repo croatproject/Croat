@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -29,6 +30,7 @@ public:
   virtual bool removeObserver(ICryptoNoteProtocolObserver* observer) = 0;
 
   virtual uint32_t getObservedHeight() const = 0;
+  virtual uint32_t getBlockchainHeight() const = 0;  
   virtual size_t getPeerCount() const = 0;
   virtual bool isSynchronized() const = 0;
 };

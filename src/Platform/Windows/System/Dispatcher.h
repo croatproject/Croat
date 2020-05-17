@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -27,9 +28,10 @@ namespace System {
 struct NativeContextGroup;
 
 struct NativeContext {
-  void* fiber;
+  void* fiber{nullptr};
   bool interrupted;
-  NativeContext* next;
+  bool inExecutionQueue;
+  NativeContext* next{nullptr};
   NativeContextGroup* group;
   NativeContext* groupPrev;
   NativeContext* groupNext;

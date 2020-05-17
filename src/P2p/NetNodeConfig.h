@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -22,9 +23,6 @@
 #include <string>
 
 #include <boost/program_options.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include "P2pNetworks.h"
 #include "P2pProtocolTypes.h"
 
 namespace CryptoNote {
@@ -46,8 +44,6 @@ public:
   std::vector<NetworkAddress> getExclusiveNodes() const;
   std::vector<NetworkAddress> getSeedNodes() const;
   bool getHideMyPort() const;
-  boost::uuids::uuid getNetworkId() const;
-  std::string getP2pStatTrustedPubKey() const;
   std::string getConfigFolder() const;
 
   void setP2pStateFilename(const std::string& filename);
@@ -61,8 +57,6 @@ public:
   void setExclusiveNodes(const std::vector<NetworkAddress>& addresses);
   void setSeedNodes(const std::vector<NetworkAddress>& addresses);
   void setHideMyPort(bool hide);
-  void setNetworkId(const boost::uuids::uuid id);
-  void setP2pStatTrustedPubKey(const std::string key);
   void setConfigFolder(const std::string& folder);
 
 private:
@@ -75,8 +69,6 @@ private:
   std::vector<NetworkAddress> exclusiveNodes;
   std::vector<NetworkAddress> seedNodes;
   bool hideMyPort;
-  boost::uuids::uuid networkId;
-  std::string p2pStatTrustedPubKey;
   std::string configFolder;
   std::string p2pStateFilename;
   bool testnet;

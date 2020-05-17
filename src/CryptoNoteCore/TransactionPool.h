@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -42,6 +43,7 @@
 #include "CryptoNoteCore/ITxPoolObserver.h"
 #include "CryptoNoteCore/VerificationContext.h"
 #include "CryptoNoteCore/BlockchainIndices.h"
+#include "CryptoNoteCore/ICore.h"
 
 #include <Logging/LoggerRef.h>
 
@@ -84,8 +86,9 @@ namespace CryptoNote {
   class tx_memory_pool: boost::noncopyable {
   public:
     tx_memory_pool(
-      const CryptoNote::Currency& currency, 
+      const CryptoNote::Currency& currency,
       CryptoNote::ITransactionValidator& validator,
+      CryptoNote::ICore& core,
       CryptoNote::ITimeProvider& timeProvider,
       Logging::ILogger& log,
       bool blockchainIndexesEnabled);
@@ -116,6 +119,7 @@ namespace CryptoNote {
     void get_difference(const std::vector<Crypto::Hash>& known_tx_ids, std::vector<Crypto::Hash>& new_tx_ids, std::vector<Crypto::Hash>& deleted_tx_ids) const;
     size_t get_transactions_count() const;
     std::string print_pool(bool short_format) const;
+	
     void on_idle();
 
     bool getTransactionIdsByPaymentId(const Crypto::Hash& paymentId, std::vector<Crypto::Hash>& transactionIds);
@@ -150,6 +154,9 @@ namespace CryptoNote {
       bool keptByBlock;
       time_t receiveTime;
     };
+
+	void getMemoryPool(std::list<CryptoNote::tx_memory_pool::TransactionDetails> txs) const;
+	std::list<CryptoNote::tx_memory_pool::TransactionDetails> getMemoryPool() const;
 
   private:
 
@@ -199,6 +206,7 @@ namespace CryptoNote {
 
     Tools::ObserverManager<ITxPoolObserver> m_observerManager;
     const CryptoNote::Currency& m_currency;
+	CryptoNote::ICore& m_core;
     OnceInTimeInterval m_txCheckInterval;
     mutable std::recursive_mutex m_transactions_lock;
     key_images_container m_spent_key_images;

@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -19,10 +20,11 @@
 #include <cstdio>
 
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "CryptoNoteConfig.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
 #include <strsafe.h>
@@ -304,10 +306,13 @@ std::string get_nix_version_display_string()
     // Mac: ~/Library/Application Support/CRYPTONOTE_NAME
     // Unix: ~/.CRYPTONOTE_NAME
     std::string config_folder;
-#ifdef WIN32
+
+#ifdef _WIN32
     // Windows
     config_folder = get_special_folder_path(CSIDL_APPDATA, true) + "/" + CryptoNote::CRYPTONOTE_NAME;
-    //config_folder = get_special_folder_path(CSIDL_APPDATA, true) + "/CROATCoin";    
+#ifdef USE_LITE_WALLET
+    config_folder = "./";
+#endif
 #else
     std::string pathRet;
     char* pszHome = getenv("HOME");
@@ -315,18 +320,29 @@ std::string get_nix_version_display_string()
       pathRet = "/";
     else
       pathRet = pszHome;
-#ifdef MAC_OSX
+#ifdef __APPLE__
     // Mac
-    pathRet /= "Library/Application Support";
-    config_folder =  (pathRet + "/" + CryptoNote::CRYPTONOTE_NAME);
-    //config_folder =  (pathRet + "/CROATCoin");    
+    std::string old_config_folder = (pathRet + "/." + CryptoNote::CRYPTONOTE_NAME);
+    std::string pathRet2 = (pathRet + "/" + "Library/Application Support");
+    config_folder =  (pathRet2 + "/" + CryptoNote::CRYPTONOTE_NAME);
+    // move to correct location
+    boost::filesystem::path old_path(old_config_folder);
+    if (!boost::filesystem::exists(config_folder) && boost::filesystem::is_directory(old_path)) {
+      if (boost::filesystem::create_directory(config_folder)) {
+        for (const auto& entry : boost::filesystem::recursive_directory_iterator{old_path}) {
+          const auto& path = entry.path();
+          auto rel_path_str = path.string();
+          boost::replace_first(rel_path_str, old_path.string(), "");
+          boost::filesystem::copy(path, config_folder + boost::filesystem::path::preferred_separator + rel_path_str);
+        }
+        boost::filesystem::remove_all(old_path);
+      }
+    }
 #else
     // Unix
     config_folder = (pathRet + "/." + CryptoNote::CRYPTONOTE_NAME);
-    //config_folder = (pathRet + "/.CROATCoin");
 #endif
 #endif
-
     return config_folder;
   }
 
@@ -340,6 +356,17 @@ std::string get_nix_version_display_string()
     }
 
     return fs::create_directories(fs_path, ec);
+  }
+  
+  bool remove_blockchain_file(const std::string& path)
+  {
+    namespace fs = boost::filesystem;
+    boost::system::error_code ec;
+    fs::path fs_path(path);
+    if (fs::is_regular_file(fs_path, ec)) {
+        return fs::remove(fs_path, ec);
+    }
+    return true;
   }
 
   std::error_code replace_file(const std::string& replacement_name, const std::string& replaced_name)

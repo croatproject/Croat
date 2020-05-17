@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -43,7 +44,8 @@ bool PaymentIdIndex::add(const Transaction& transaction) {
     return false;
   }
 
-  index.emplace(paymentId, transactionHash);
+  //index.emplace(paymentId, transactionHash);
+  index.insert(std::make_pair(paymentId, transactionHash));
 
   return true;
 }
@@ -82,6 +84,18 @@ bool PaymentIdIndex::find(const Crypto::Hash& paymentId, std::vector<Crypto::Has
     transactionHashes.emplace_back(iter->second);
   }
   return found;
+}
+
+std::vector<Crypto::Hash> PaymentIdIndex::find(const Crypto::Hash& paymentId) {
+	if (!enabled) {
+		throw std::runtime_error("Payment id index disabled.");
+	}
+	std::vector<Crypto::Hash> transactionHashes;
+	auto range = index.equal_range(paymentId);
+	for (auto iter = range.first; iter != range.second; ++iter) {
+		transactionHashes.emplace_back(iter->second);
+	}
+	return transactionHashes;
 }
 
 void PaymentIdIndex::clear() {

@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -40,7 +41,7 @@ namespace CryptoNote {
     ~miner();
 
     bool init(const MinerConfig& config);
-    bool set_block_template(const Block& bl, const difficulty_type& diffic);
+    bool set_block_template(const Block& bl, const difficulty_type& diffic, uint32_t& height);
     bool on_block_chain_update();
     bool start(const AccountPublicAddress& adr, size_t threads_count);
     uint64_t get_speed();
@@ -77,6 +78,7 @@ namespace CryptoNote {
     std::atomic<uint32_t> m_template_no;
     std::atomic<uint32_t> m_starter_nonce;
     difficulty_type m_diffic;
+    uint32_t m_height;
 
     std::atomic<uint32_t> m_threads_total;
     std::atomic<int32_t> m_pausers_count;

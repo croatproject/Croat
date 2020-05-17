@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -572,12 +573,8 @@ BlockchainSynchronizer::UpdateConsumersResult BlockchainSynchronizer::updateCons
       kv.second->detach(result.detachHeight);
     }
 
-    if (result.newBlockHeight == 1)
-      result.newBlockHeight = 0;
     if (result.hasNewBlocks) {
       uint32_t startOffset = result.newBlockHeight - interval.startHeight;
-    if (result.newBlockHeight == 0)
-      startOffset = 0;
       // update consumer
       uint32_t blockCount = static_cast<uint32_t>(blocks.size()) - startOffset;
       m_logger(DEBUGGING) << "Adding blocks to consumer, consumer " << kv.first << ", start index " << result.newBlockHeight << ", count " << blockCount;
@@ -629,7 +626,7 @@ void BlockchainSynchronizer::removeOutdatedTransactions() {
       }
     }
   } else {
-    m_logger(ERROR, BRIGHT_RED) << "Failed to query outdated pool transaction: " << ec << ", " << ec.message();
+    m_logger(DEBUGGING, BRIGHT_RED) << "Failed to query outdated pool transaction: " << ec << ", " << ec.message();
   }
 
   if (!ec) {

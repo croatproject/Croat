@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -18,5 +19,7 @@
 #include "SwappedMap.h"
 
 namespace {
-char suppressMSVCWarningLNK4221;
+#ifdef _MSC_VER
+  char suppressMSVCWarningLNK4221;
+#endif
 }

@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -34,6 +35,8 @@
 
 #include <Logging/LoggerRef.h>
 
+#define CURRENCY_PROTOCOL_MAX_OBJECT_REQUEST_COUNT 500
+
 namespace System {
   class Dispatcher;
 }
@@ -47,6 +50,18 @@ namespace CryptoNote
     public ICryptoNoteProtocolQuery
   {
   public:
+
+
+    struct parsed_block_entry
+    {
+      Block block;
+      std::vector<BinaryArray> txs;
+
+      void serialize(ISerializer& s) {
+        KV_MEMBER(block);
+        KV_MEMBER(txs);
+      }
+    };
 
     CryptoNoteProtocolHandler(const Currency& currency, System::Dispatcher& dispatcher, ICore& rcore, IP2pEndpoint* p_net_layout, Logging::ILogger& log);
 
@@ -70,6 +85,7 @@ namespace CryptoNote
     int handleCommand(bool is_notify, int command, const BinaryArray& in_buff, BinaryArray& buff_out, CryptoNoteConnectionContext& context, bool& handled);
     virtual size_t getPeerCount() const override;
     virtual uint32_t getObservedHeight() const override;
+    virtual uint32_t getBlockchainHeight() const override;    
     void requestMissingPoolTransactions(const CryptoNoteConnectionContext& context);
 
   private:
@@ -92,7 +108,7 @@ namespace CryptoNote
     bool on_connection_synchronized();
     void updateObservedHeight(uint32_t peerHeight, const CryptoNoteConnectionContext& context);
     void recalculateMaxObservedHeight(const CryptoNoteConnectionContext& context);
-    int processObjects(CryptoNoteConnectionContext& context, const std::vector<block_complete_entry>& blocks);
+    int processObjects(CryptoNoteConnectionContext& context, const std::vector<parsed_block_entry>& blocks);
     Logging::LoggerRef logger;
 
   private:
@@ -105,9 +121,13 @@ namespace CryptoNote
     IP2pEndpoint* m_p2p;
     std::atomic<bool> m_synchronized;
     std::atomic<bool> m_stop;
+    std::recursive_mutex m_sync_lock;
 
     mutable std::mutex m_observedHeightMutex;
     uint32_t m_observedHeight;
+    
+    mutable std::mutex m_blockchainHeightMutex;
+    uint32_t m_blockchainHeight;    
 
     std::atomic<size_t> m_peersCount;
     Tools::ObserverManager<ICryptoNoteProtocolObserver> m_observerManager;

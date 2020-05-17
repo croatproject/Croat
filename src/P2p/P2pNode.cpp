@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -30,6 +31,8 @@
 #include "Common/StdOutputStream.h"
 #include "Serialization/BinaryInputStreamSerializer.h"
 #include "Serialization/BinaryOutputStreamSerializer.h"
+
+#include "version.h"
 
 #include "LevinProtocol.h"
 #include "P2pConnectionProxy.h"
@@ -209,7 +212,7 @@ void P2pNode::acceptLoop() {
     } catch (InterruptedException&) {
       break;
     } catch (const std::exception& e) {
-      logger(WARNING) << "Exception in acceptLoop: " << e.what();
+      logger(TRACE) << "Exception in acceptLoop: " << e.what();
     }
   }
 
@@ -224,7 +227,7 @@ void P2pNode::connectorLoop() {
     } catch (InterruptedException&) {
       break;
     } catch (const std::exception& e) {
-      logger(WARNING) << "Exception in connectorLoop: " << e.what();
+      logger(TRACE) << "Exception in connectorLoop: " << e.what();
     }
   }
 }
@@ -287,7 +290,7 @@ bool P2pNode::makeNewConnectionFromPeerlist(const PeerlistManager::Peerlist& pee
   for (size_t tryCount = 0; idxGen.generate(peerIndex) && tryCount < m_cfg.getPeerListGetTryCount(); ++tryCount) {
     PeerlistEntry peer;
     if (!peerlist.get(peer, peerIndex)) {
-      logger(WARNING) << "Failed to get peer from list, idx = " << peerIndex;
+      logger(TRACE) << "Failed to get peer from list, idx = " << peerIndex;
       continue;
     }
 
@@ -320,7 +323,7 @@ void P2pNode::preprocessIncomingConnection(ContextPtr ctx) {
       enqueueConnection(std::move(proxy));
     }
   } catch (std::exception& e) {
-    logger(WARNING) << " Failed to process connection: " << e.what();
+    logger(TRACE) << " Failed to process connection: " << e.what();
   }
 }
 
@@ -452,6 +455,9 @@ basic_node_data P2pNode::getNodeData() const {
   basic_node_data nodeData;
   nodeData.network_id = m_cfg.getNetworkId();
   nodeData.version = P2PProtocolVersion::CURRENT;
+
+  nodeData.node_version = CN_PROJECT_VERSION;    
+
   nodeData.local_time = time(nullptr);
   nodeData.peer_id = m_myPeerId;
 
