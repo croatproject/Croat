@@ -186,7 +186,8 @@ const char* const SEED_NODES[] = {
   "173.249.32.180:46347",               // Node-01 de CROAT Pirineus
   "80.241.213.210:46347",               // Node-02 de CROAT Pirineus
   "199.247.29.17:46347",                // Node de POOL.CAT 
-  "207.180.226.44:46347",               // Node de CROAT.pro};
+  "207.180.226.44:46347",               // Node de CROAT.pro
+};
 
 const char* const TRUSTED_NODES[] = {
   "173.199.71.78",                  // Node-01 CROAT.community
