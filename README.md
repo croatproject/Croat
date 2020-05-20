@@ -13,12 +13,12 @@
 
 Dependencies: GCC 4.7.3 or later, CMake 2.8.6 or later, and Boost 1.55 or later and libcurl4-openssl-dev.
 
-You may download them from:
+CROAT 2.0 uses libcurl to connect with CROAT.community servers for verify if node is using right version. You need to install libcurl.
 
-* http://gcc.gnu.org/
-* http://www.cmake.org/
-* http://www.boost.org/
-* Alternatively, it may be possible to install them using a package manager.
+Ubuntu:
+```
+sudo apt install cmake build-essential libboost-all-dev libcurl4-openssl-dev
+```
 
 To build, change to a directory where this file is located, and run `make all`. The resulting executables can be found in `build/release/src`.
 
