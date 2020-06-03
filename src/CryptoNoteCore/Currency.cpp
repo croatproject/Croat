@@ -258,7 +258,8 @@ namespace CryptoNote {
 
 		tx.version = CURRENT_TRANSACTION_VERSION;
 		//lock
-		tx.unlockTime = height + (height < CryptoNote::parameters::UPGRADE_HEIGHT_V4 ? m_minedMoneyUnlockWindow : m_minedMoneyUnlockWindow_v1);
+		//tx.unlockTime = height + (height < CryptoNote::parameters::UPGRADE_HEIGHT_V4 ? m_minedMoneyUnlockWindow : m_minedMoneyUnlockWindow_v1);
+        tx.unlockTime = height + (blockMajorVersion < BLOCK_MAJOR_VERSION_4 ? minedMoneyUnlockWindow() : minedMoneyUnlockWindow_v1());        
 		tx.inputs.push_back(in);
 		return true;
 	}
@@ -536,13 +537,15 @@ namespace CryptoNote {
             
             if (!isTestnet())
             {
-                logger(DEBUGGING, BRIGHT_YELLOW) << "Fixing Diff to '17141714' in mainnet! " << offset << " blocks left!";
-                return 17141714;  // Fixed difficulty value
+                uint64_t nextDiff = 17141714; // Fixed difficulty value
+                logger(DEBUGGING, BRIGHT_YELLOW) << "Fixing Diff to '" << nextDiff << "' in mainnet! " << offset << " blocks left!";
+                return nextDiff;
             }
             else if (isTestnet()) //Hardcode difficulty if isTestnet
             {
-                logger(DEBUGGING, BRIGHT_YELLOW) << "Fixing Diff to '714' in testnet! " << offset << " blocks left!";
-                return 714;
+                uint64_t nextDiff = 14;
+                logger(DEBUGGING, BRIGHT_YELLOW) << "Fixing Diff to '" << nextDiff << "' in testnet! " << offset << " blocks left!";
+                return nextDiff;
             }
         }
         
