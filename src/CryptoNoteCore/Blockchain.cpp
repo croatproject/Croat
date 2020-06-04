@@ -1091,13 +1091,12 @@ bool Blockchain::prevalidate_miner_transaction(const Block& b, uint32_t height) 
     return false;
   }
 
-  //if (!(b.baseTransaction.unlockTime == height + m_currency.minedMoneyUnlockWindow())) {
-    if (!(b.baseTransaction.unlockTime == height + (b.majorVersion < BLOCK_MAJOR_VERSION_4 ? m_currency.minedMoneyUnlockWindow() : m_currency.minedMoneyUnlockWindow_v1()))) {      
+    //if (!(b.baseTransaction.unlockTime == height + m_currency.minedMoneyUnlockWindow())) {
+    if (!(b.baseTransaction.unlockTime == height + (height < CryptoNote::parameters::UPGRADE_HEIGHT_V4_FIX_1 ? m_currency.minedMoneyUnlockWindow_v1() : m_currency.minedMoneyUnlockWindow()))) {  
     logger(ERROR, BRIGHT_RED)
-      << "coinbase transaction transaction have wrong unlock time="
+      << "coinbase transaction have wrong unlock time="
       << b.baseTransaction.unlockTime << ", expected "
-      //<< height + m_currency.minedMoneyUnlockWindow();
-      << height + (b.majorVersion < BLOCK_MAJOR_VERSION_4 ? m_currency.minedMoneyUnlockWindow() : m_currency.minedMoneyUnlockWindow_v1());      
+      << height + (height < CryptoNote::parameters::UPGRADE_HEIGHT_V4_FIX_1 ? m_currency.minedMoneyUnlockWindow_v1() : m_currency.minedMoneyUnlockWindow());
     return false;
   }
 
