@@ -258,7 +258,7 @@ namespace CryptoNote {
 
 		tx.version = CURRENT_TRANSACTION_VERSION;
 		//lock
-        tx.unlockTime = height + (height < CryptoNote::parameters::UPGRADE_HEIGHT_V4_FIX_1 ? m_minedMoneyUnlockWindow_v1 : m_minedMoneyUnlockWindow);
+       	tx.unlockTime = height + ((height < CryptoNote::parameters::UPGRADE_HEIGHT_V4_FIX_1 && height > CryptoNote::parameters::UPGRADE_HEIGHT_V4) ? m_minedMoneyUnlockWindow_v1 : m_minedMoneyUnlockWindow);
 		tx.inputs.push_back(in);
 		return true;
 	}

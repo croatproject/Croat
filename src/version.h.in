@@ -3,11 +3,11 @@
 
 #define CN_PROJECT_NAME "CROAT.community Node"
 #define CN_PROJECT_SITE "https://croat.community"
-#define CN_PROJECT_COPYRIGHT "Copyright 2017-2020, CROAT.community Devs"
+#define CN_PROJECT_COPYRIGHT "Copyright 2017-2021, CROAT.community Devs"
 #define CN_VER_MAJOR 2
 #define CN_VER_MINOR 0
-#define CN_VER_REV 1
-#define CN_VER_BUILD 0406202001
+#define CN_VER_REV 2
+#define CN_VER_BUILD 20210207
 #define CN_VER_REMARK "#CriptomonedaCatalana"
 #define CN_PROJECT_VERSION STR(CN_VER_MAJOR) "." STR(CN_VER_MINOR) "." STR(CN_VER_REV)
 #define CN_PROJECT_VERSION_BUILD_NO STR(CN_VER_BUILD)
