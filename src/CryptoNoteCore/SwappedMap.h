@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -20,10 +21,8 @@
 #include <cstdint>
 #include <fstream>
 #include <iomanip>
-#include <list>
 #include <iostream>
-#include <functional>
-#include <utility>
+#include <list>
 #include <unordered_map>
 #include <string>
 #include <vector>

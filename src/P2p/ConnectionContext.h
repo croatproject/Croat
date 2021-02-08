@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -50,6 +51,9 @@ struct CryptoNoteConnectionContext {
   std::unordered_set<Crypto::Hash> m_requested_objects;
   uint32_t m_remote_blockchain_height = 0;
   uint32_t m_last_response_height = 0;
+// by CROAT
+  uint32_t msg2006 = 0;
+  uint32_t msg2007 = 0;
 };
 
 inline std::string get_protocol_state_string(CryptoNoteConnectionContext::state s) {

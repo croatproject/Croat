@@ -1,4 +1,8 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero project
+// Copyright (c) 2014-2018, The Forknote developers
+// Copyright (c) 2016-2018, The Karbowanec developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -17,20 +21,23 @@
 
 #pragma once
 
+#include <boost/format.hpp>
 #include "Common/ConsoleHandler.h"
-
+#include "CryptoNoteProtocol/ICryptoNoteProtocolQuery.h"
 #include <Logging/LoggerRef.h>
 #include <Logging/LoggerManager.h>
+#include "Rpc/RpcServer.h"
 
 namespace CryptoNote {
 class core;
 class NodeServer;
+class ICryptoNoteProtocolQuery;
 }
 
 class DaemonCommandsHandler
 {
 public:
-  DaemonCommandsHandler(CryptoNote::core& core, CryptoNote::NodeServer& srv, Logging::LoggerManager& log);
+  DaemonCommandsHandler(CryptoNote::core& core, CryptoNote::NodeServer& srv, Logging::LoggerManager& log, const CryptoNote::ICryptoNoteProtocolQuery& protocol, CryptoNote::RpcServer* prpc_server);
 
   bool start_handling() {
     m_consoleHandler.start();
@@ -48,8 +55,12 @@ private:
   CryptoNote::NodeServer& m_srv;
   Logging::LoggerRef logger;
   Logging::LoggerManager& m_logManager;
-
+  const CryptoNote::ICryptoNoteProtocolQuery& protocolQuery;
+  CryptoNote::RpcServer* m_prpc_server;
+  
   std::string get_commands_str();
+  std::string get_mining_speed(uint64_t hr);
+  float get_sync_percentage(uint64_t height, uint64_t target_height);
   bool print_block_by_height(uint32_t height);
   bool print_block_by_hash(const std::string& arg);
 
@@ -62,11 +73,18 @@ private:
   bool print_cn(const std::vector<std::string>& args);
   bool print_bc(const std::vector<std::string>& args);
   bool print_bci(const std::vector<std::string>& args);
+  bool print_height(const std::vector<std::string>& args);
   bool set_log(const std::vector<std::string>& args);
   bool print_block(const std::vector<std::string>& args);
   bool print_tx(const std::vector<std::string>& args);
   bool print_pool(const std::vector<std::string>& args);
   bool print_pool_sh(const std::vector<std::string>& args);
+  bool print_pool_count(const std::vector<std::string>& args);
   bool start_mining(const std::vector<std::string>& args);
   bool stop_mining(const std::vector<std::string>& args);
+  bool print_diff(const std::vector<std::string>& args);
+  bool print_ban(const std::vector<std::string>& args);
+  bool ban(const std::vector<std::string>& args);
+  bool unban(const std::vector<std::string>& args);
+  bool status(const std::vector<std::string>& args);
 };

@@ -1,4 +1,7 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2016-2018, The Karbo developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -52,6 +55,10 @@ struct EllipticCurveScalar {
 
     static void generate_keys(PublicKey &, SecretKey &);
     friend void generate_keys(PublicKey &, SecretKey &);
+	static void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second);
+	friend void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second);
+	static SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key = SecretKey(), bool recover = false);
+	friend SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key, bool recover);
     static bool check_key(const PublicKey &);
     friend bool check_key(const PublicKey &);
     static bool secret_key_to_public_key(const SecretKey &, PublicKey &);
@@ -80,6 +87,10 @@ struct EllipticCurveScalar {
     friend void generate_signature(const Hash &, const PublicKey &, const SecretKey &, Signature &);
     static bool check_signature(const Hash &, const PublicKey &, const Signature &);
     friend bool check_signature(const Hash &, const PublicKey &, const Signature &);
+	static void generate_tx_proof(const Hash &, const PublicKey &, const PublicKey &, const PublicKey &, const SecretKey &, Signature &);
+	friend void generate_tx_proof(const Hash &, const PublicKey &, const PublicKey &, const PublicKey &, const SecretKey &, Signature &);
+	static bool check_tx_proof(const Hash &, const PublicKey &, const PublicKey &, const PublicKey &, const Signature &);
+	friend bool check_tx_proof(const Hash &, const PublicKey &, const PublicKey &, const PublicKey &, const Signature &);
     static void generate_key_image(const PublicKey &, const SecretKey &, KeyImage &);
     friend void generate_key_image(const PublicKey &, const SecretKey &, KeyImage &);
     static KeyImage scalarmultKey(const KeyImage & P, const KeyImage & a);
@@ -139,6 +150,14 @@ struct EllipticCurveScalar {
    */
   inline void generate_keys(PublicKey &pub, SecretKey &sec) {
     crypto_ops::generate_keys(pub, sec);
+  }
+
+  inline void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second) {
+    crypto_ops::generate_deterministic_keys(pub, sec, second);
+  }
+
+  inline SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key = SecretKey(), bool recover = false) {
+    return crypto_ops::generate_m_keys(pub, sec, recovery_key, recover);
   }
 
   /* Check a public key. Returns true if it is valid, false otherwise.
@@ -210,6 +229,16 @@ struct EllipticCurveScalar {
   inline bool check_signature(const Hash &prefix_hash, const PublicKey &pub, const Signature &sig) {
     return crypto_ops::check_signature(prefix_hash, pub, sig);
   }
+
+  /* Generation and checking of a tx proof; given a tx pubkey R, the recipient's view pubkey A, and the key
+   * derivation D, the signature proves the knowledge of the tx secret key r such that R=r*G and D=r*A
+   */
+  inline void generate_tx_proof(const Hash &prefix_hash, const PublicKey &R, const PublicKey &A, const PublicKey &D, const SecretKey &r, Signature &sig) {
+    crypto_ops::generate_tx_proof(prefix_hash, R, A, D, r, sig);
+  }
+  inline bool check_tx_proof(const Hash &prefix_hash, const PublicKey &R, const PublicKey &A, const PublicKey &D, const Signature &sig) {
+    return crypto_ops::check_tx_proof(prefix_hash, R, A, D, sig);
+  }	
 
   /* To send money to a key:
    * * The sender generates an ephemeral key and includes it in transaction output.

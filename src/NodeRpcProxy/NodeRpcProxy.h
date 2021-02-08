@@ -1,4 +1,6 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2016-2017 The Karbowanec developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -24,8 +26,10 @@
 #include <thread>
 #include <unordered_set>
 
+#include "../CryptoNoteConfig.h"
 #include "Common/ObserverManager.h"
 #include "INode.h"
+#include "Rpc/CoreRpcServerCommandsDefinitions.h"
 
 namespace System {
   class ContextGroup;
@@ -63,7 +67,10 @@ public:
   virtual uint32_t getLocalBlockCount() const override;
   virtual uint32_t getKnownBlockCount() const override;
   virtual uint64_t getLastLocalBlockTimestamp() const override;
+  virtual uint64_t getMinimalFee() const override;
+  virtual uint32_t getNodeHeight() const override;
   virtual BlockHeaderInfo getLastLocalBlockHeaderInfo() const override;
+  virtual void getFeeAddress() override;
 
   virtual void relayTransaction(const CryptoNote::Transaction& transaction, const Callback& callback) override;
   virtual void getRandomOutsByAmounts(std::vector<uint64_t>&& amounts, uint64_t outsCount, std::vector<COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::outs_for_amount>& result, const Callback& callback) override;
@@ -76,13 +83,19 @@ public:
   virtual void getBlocks(const std::vector<uint32_t>& blockHeights, std::vector<std::vector<BlockDetails>>& blocks, const Callback& callback) override;
   virtual void getBlocks(const std::vector<Crypto::Hash>& blockHashes, std::vector<BlockDetails>& blocks, const Callback& callback) override;
   virtual void getBlocks(uint64_t timestampBegin, uint64_t timestampEnd, uint32_t blocksNumberLimit, std::vector<BlockDetails>& blocks, uint32_t& blocksNumberWithinTimestamps, const Callback& callback) override;
+  virtual void getBlock(const uint32_t blockHeight, BlockDetails &block, const Callback& callback) override;
   virtual void getTransactions(const std::vector<Crypto::Hash>& transactionHashes, std::vector<TransactionDetails>& transactions, const Callback& callback) override;
   virtual void getTransactionsByPaymentId(const Crypto::Hash& paymentId, std::vector<TransactionDetails>& transactions, const Callback& callback) override;
   virtual void getPoolTransactions(uint64_t timestampBegin, uint64_t timestampEnd, uint32_t transactionsNumberLimit, std::vector<TransactionDetails>& transactions, uint64_t& transactionsNumberWithinTimestamps, const Callback& callback) override;
   virtual void isSynchronized(bool& syncStatus, const Callback& callback) override;
 
+  virtual std::string feeAddress() const override;
+
   unsigned int rpcTimeout() const { return m_rpcTimeout; }
   void rpcTimeout(unsigned int val) { m_rpcTimeout = val; }
+
+  const std::string m_nodeHost;
+  const unsigned short m_nodePort;
 
 private:
   void resetInternalState();
@@ -107,6 +120,11 @@ private:
     std::vector<CryptoNote::BlockShortEntry>& newBlocks, uint32_t& startHeight);
   std::error_code doGetPoolSymmetricDifference(std::vector<Crypto::Hash>&& knownPoolTxIds, Crypto::Hash knownBlockId, bool& isBcActual,
           std::vector<std::unique_ptr<ITransactionReader>>& newTxs, std::vector<Crypto::Hash>& deletedTxIds);
+  std::error_code doGetBlocksByHeight(const std::vector<uint32_t>& blockHeights, std::vector<std::vector<BlockDetails>>& blocks);
+  std::error_code doGetBlocksByHash(const std::vector<Crypto::Hash>& blockHashes, std::vector<BlockDetails>& blocks);
+  std::error_code doGetBlock(const uint32_t blockHeight, BlockDetails& block);
+  std::error_code doGetTransactionHashesByPaymentId(const Crypto::Hash& paymentId, std::vector<Crypto::Hash>& transactionHashes);
+  std::error_code doGetTransactions(const std::vector<Crypto::Hash>& transactionHashes, std::vector<TransactionDetails>& transactions);
 
   void scheduleRequest(std::function<std::error_code()>&& procedure, const Callback& callback);
   template <typename Request, typename Response>
@@ -132,8 +150,6 @@ private:
   Tools::ObserverManager<CryptoNote::INodeObserver> m_observerManager;
   Tools::ObserverManager<CryptoNote::INodeRpcProxyObserver> m_rpcProxyObserverManager;
 
-  const std::string m_nodeHost;
-  const unsigned short m_nodePort;
   unsigned int m_rpcTimeout;
   HttpClient* m_httpClient = nullptr;
   System::Event* m_httpEvent = nullptr;
@@ -144,12 +160,15 @@ private:
   bool m_stop = false;
   std::atomic<size_t> m_peerCount;
   std::atomic<uint32_t> m_networkHeight;
+  std::atomic<uint32_t> m_nodeHeight;
+  std::atomic<uint64_t> m_minimalFee;
 
   BlockHeaderInfo lastLocalBlockHeaderInfo;
   //protect it with mutex if decided to add worker threads
   std::unordered_set<Crypto::Hash> m_knownTxs;
 
   bool m_connected;
+  std::string m_fee_address;
 };
 
 }

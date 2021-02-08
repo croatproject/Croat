@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -19,7 +20,6 @@
 
 #include <fstream>
 #include <boost/program_options.hpp>
-#include <boost/algorithm/string.hpp>
 
 #include "Common/CommandLine.h"
 #include "Common/Util.h"
@@ -37,7 +37,7 @@ bool ConfigurationManager::init(int argc, char** argv) {
   po::options_description cmdGeneralOptions("Common Options");
 
   cmdGeneralOptions.add_options()
-  ("config,c", po::value<std::string>()->default_value(""), "configuration file");
+      ("config,c", po::value<std::string>(), "configuration file");
 
   po::options_description confGeneralOptions;
   confGeneralOptions.add(cmdGeneralOptions).add_options()
@@ -62,14 +62,12 @@ bool ConfigurationManager::init(int argc, char** argv) {
 
   po::options_description remoteNodeOptions("Remote Node Options");
   RpcNodeConfiguration::initOptions(remoteNodeOptions);
-  po::options_description coinBaseOptions("Coin Base Options");
-  CoinBaseConfiguration::initOptions(coinBaseOptions);
 
   po::options_description cmdOptionsDesc;
-  cmdOptionsDesc.add(cmdGeneralOptions).add(remoteNodeOptions).add(netNodeOptions).add(coinBaseOptions);
+  cmdOptionsDesc.add(cmdGeneralOptions).add(remoteNodeOptions).add(netNodeOptions);
 
   po::options_description confOptionsDesc;
-  confOptionsDesc.add(confGeneralOptions).add(remoteNodeOptions).add(netNodeOptions).add(coinBaseOptions);
+  confOptionsDesc.add(confGeneralOptions).add(remoteNodeOptions).add(netNodeOptions);
 
   po::variables_map cmdOptions;
   po::store(po::parse_command_line(argc, argv, cmdOptionsDesc), cmdOptions);
@@ -81,7 +79,7 @@ bool ConfigurationManager::init(int argc, char** argv) {
   }
 
   if (cmdOptions.count("version") > 0) {
-    std::cout << "walletd v" << PROJECT_VERSION_LONG;
+    std::cout << "walletd v" << CN_PROJECT_VERSION_LONG;
     return false;
   }
 
@@ -92,14 +90,13 @@ bool ConfigurationManager::init(int argc, char** argv) {
     }
 
     po::variables_map confOptions;
-    po::store(po::parse_config_file(confStream, confOptionsDesc, true), confOptions);
+    po::store(po::parse_config_file(confStream, confOptionsDesc), confOptions);
     po::notify(confOptions);
 
     gateConfiguration.init(confOptions);
     netNodeConfig.init(confOptions);
     coreConfig.init(confOptions);
     remoteNodeConfig.init(confOptions);
-    coinBaseConfig.init(confOptions);
 
     netNodeConfig.setTestnet(confOptions["testnet"].as<bool>());
     startInprocess = confOptions["local"].as<bool>();
@@ -108,12 +105,6 @@ bool ConfigurationManager::init(int argc, char** argv) {
   //command line options should override options from config file
   gateConfiguration.init(cmdOptions);
   netNodeConfig.init(cmdOptions);
-    std::string default_data_dir = Tools::getDefaultDataDirectory();
-    if (!coinBaseConfig.CRYPTONOTE_NAME.empty()) {
-      boost::replace_all(default_data_dir, CryptoNote::CRYPTONOTE_NAME, coinBaseConfig.CRYPTONOTE_NAME);
-    }
-    coreConfig.configFolder = default_data_dir;
-    netNodeConfig.setConfigFolder(default_data_dir);
   coreConfig.init(cmdOptions);
   remoteNodeConfig.init(cmdOptions);
 

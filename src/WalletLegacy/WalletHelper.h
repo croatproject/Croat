@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -65,7 +66,7 @@ private:
 };
 
 void prepareFileNames(const std::string& file_path, std::string& keys_file, std::string& wallet_file);
-void storeWallet(CryptoNote::IWalletLegacy& wallet, const std::string& walletFilename);
+bool storeWallet(CryptoNote::IWalletLegacy& wallet, const std::string& walletFilename);
 
 }
 }

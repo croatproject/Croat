@@ -1,4 +1,6 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2016 XDN developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -39,6 +41,7 @@ namespace CryptoNote {
 
 HttpResponse::HTTP_STATUS HttpParser::parseResponseStatusFromString(const std::string& status) {
   if (status == "200 OK" || status == "200 Ok") return CryptoNote::HttpResponse::STATUS_200;
+  else if (status.substr(0, 4) == "401 ") return CryptoNote::HttpResponse::STATUS_401;
   else if (status == "404 Not Found") return CryptoNote::HttpResponse::STATUS_404;
   else if (status == "500 Internal Server Error") return CryptoNote::HttpResponse::STATUS_500;
   else throw std::system_error(make_error_code(CryptoNote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL),

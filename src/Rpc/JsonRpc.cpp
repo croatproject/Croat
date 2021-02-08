@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -16,7 +17,8 @@
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "JsonRpc.h"
-#include "Rpc/HttpClient.h"
+#include "HttpClient.h"
+#include "CryptoNoteCore/TransactionPool.h"
 
 namespace CryptoNote {
 
@@ -38,10 +40,16 @@ JsonRpcError::JsonRpcError(int c) : code(c) {
 JsonRpcError::JsonRpcError(int c, const std::string& msg) : code(c), message(msg) {
 }
 
-void invokeJsonRpcCommand(HttpClient& httpClient, JsonRpcRequest& jsReq, JsonRpcResponse& jsRes) {
+void invokeJsonRpcCommand(HttpClient& httpClient, JsonRpcRequest& jsReq, JsonRpcResponse& jsRes, const std::string& user, const std::string& password) {
+//void invokeJsonRpcCommand(HttpClient& httpClient, JsonRpcRequest& jsReq, JsonRpcResponse& jsRes) {
   HttpRequest httpReq;
   HttpResponse httpRes;
-
+/*
+  if (!user.empty() || !password.empty()) {
+    httpReq.addHeader("Authorization", "Basic " + Tools::Base64::encode(user + ":" + password));
+  }
+*/
+  httpReq.addHeader("Content-Type", "application/json");
   httpReq.setUrl("/json_rpc");
   httpReq.setBody(jsReq.getBody());
 

@@ -1,4 +1,6 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018, Karbo developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -56,7 +58,7 @@ bool constructTransaction(
   const AccountKeys& senderAccountKeys,
   const std::vector<TransactionSourceEntry>& sources,
   const std::vector<TransactionDestinationEntry>& destinations,
-  std::vector<uint8_t> extra, Transaction& transaction, uint64_t unlock_time, Logging::ILogger& log);
+  std::vector<uint8_t> extra, Transaction& transaction, uint64_t unlock_time, Crypto::SecretKey &tx_key, Logging::ILogger& log);
 
 
 bool is_out_to_acc(const AccountKeys& acc, const KeyOutput& out_key, const Crypto::PublicKey& tx_pub_key, size_t keyIndex);
@@ -124,5 +126,6 @@ void decompose_amount_into_digits(uint64_t amount, uint64_t dust_threshold, cons
 void get_tx_tree_hash(const std::vector<Crypto::Hash>& tx_hashes, Crypto::Hash& h);
 Crypto::Hash get_tx_tree_hash(const std::vector<Crypto::Hash>& tx_hashes);
 Crypto::Hash get_tx_tree_hash(const Block& b);
+bool is_valid_decomposed_amount(uint64_t amount);
 
 }

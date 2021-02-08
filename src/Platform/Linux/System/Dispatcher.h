@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -21,6 +22,9 @@
 #include <functional>
 #include <queue>
 #include <stack>
+#ifndef __GLIBC__
+#include <bits/reg.h>
+#endif
 
 namespace System {
 
@@ -28,9 +32,10 @@ struct NativeContextGroup;
 
 struct NativeContext {
   void* ucontext;
-  void* stackPtr;
+  void* stackPtr{nullptr};
   bool interrupted;
-  NativeContext* next;
+  bool inExecutionQueue;
+  NativeContext* next{nullptr};
   NativeContextGroup* group;
   NativeContext* groupPrev;
   NativeContext* groupNext;
@@ -85,6 +90,8 @@ public:
 # else
   static const int SIZEOF_PTHREAD_MUTEX_T = 32;
 # endif
+#elif defined(__aarch64__)
+  static const int SIZEOF_PTHREAD_MUTEX_T = 48;
 #else
   static const int SIZEOF_PTHREAD_MUTEX_T = 24;
 #endif

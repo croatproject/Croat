@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -62,6 +63,7 @@ namespace CryptoNote
   {
     uuid network_id;
     uint8_t version;
+    std::string node_version;    // By CROAT
     uint64_t local_time;
     uint32_t my_port;
     PeerIdType peer_id;
@@ -72,6 +74,7 @@ namespace CryptoNote
         version = 0;
       }
       KV_MEMBER(version)
+      KV_MEMBER(node_version)       // BY CROAT
       KV_MEMBER(peer_id)
       KV_MEMBER(local_time)
       KV_MEMBER(my_port)
@@ -231,6 +234,7 @@ namespace CryptoNote
     {
       std::string version;
       std::string os_version;
+      std::string node_version;   // BY CROAT
       uint64_t connections_count;
       uint64_t incoming_connections_count;
       core_stat_info payload_info;
@@ -238,6 +242,7 @@ namespace CryptoNote
       void serialize(ISerializer& s) {
         KV_MEMBER(version)
         KV_MEMBER(os_version)
+        KV_MEMBER(node_version)        // By CROAT
         KV_MEMBER(connections_count)
         KV_MEMBER(incoming_connections_count)
         KV_MEMBER(payload_info)

@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -24,7 +25,7 @@
 #include "PaymentGateService.h"
 #include "version.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #include <winsvc.h>
 #else
@@ -40,7 +41,7 @@
 
 PaymentGateService* ppg;
 
-#ifdef WIN32
+#ifdef _WIN32
 SERVICE_STATUS_HANDLE serviceStatusHandle;
 
 std::string GetLastErrorMessage(DWORD errorMessageID)
@@ -131,7 +132,7 @@ int daemonize() {
 #endif
 
 int runDaemon() {
-#ifdef WIN32
+#ifdef _WIN32
 
   SERVICE_TABLE_ENTRY serviceTable[] {
     { "Payment Gate", serviceMain },
@@ -167,7 +168,7 @@ int runDaemon() {
 }
 
 int registerService() {
-#ifdef WIN32
+#ifdef _WIN32
   Logging::LoggerRef logRef(ppg->getLogger(), "ServiceRegistrator");
 
   char pathBuff[MAX_PATH];
@@ -224,7 +225,7 @@ int registerService() {
 }
 
 int unregisterService() {
-#ifdef WIN32
+#ifdef _WIN32
   Logging::LoggerRef logRef(ppg->getLogger(), "ServiceDeregistrator");
 
   SC_HANDLE scManager = NULL;
@@ -301,7 +302,7 @@ int main(int argc, char** argv) {
       return 0; //help message requested or so
     }
 
-    Logging::LoggerRef(pg.getLogger(), "main")(Logging::INFO) << "walled v" << PROJECT_VERSION_LONG;
+    Logging::LoggerRef(pg.getLogger(), "main")(Logging::INFO) << "walletd v" << CN_PROJECT_VERSION_LONG;
 
     const auto& config = pg.getConfig();
 

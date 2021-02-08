@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -23,3 +24,6 @@
 #define WALLET_RPC_ERROR_CODE_DAEMON_IS_BUSY          -3
 #define WALLET_RPC_ERROR_CODE_GENERIC_TRANSFER_ERROR  -4
 #define WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID        -5
+#define WALLET_RPC_ERROR_CODE_WRONG_MIXIN             -6
+#define WALLET_RPC_ERROR_CODE_WRONG_FEE               -7
+#define WALLET_RPC_ERROR_CODE_WRONG_SIGNATURE         -9

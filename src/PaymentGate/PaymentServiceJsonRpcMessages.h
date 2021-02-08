@@ -1,4 +1,7 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019 The Karbo developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -45,6 +48,19 @@ struct Save {
 struct Reset {
   struct Request {
     std::string viewSecretKey;
+    uint32_t scanHeight = std::numeric_limits<uint32_t>::max();
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+
+  struct Response {
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+};
+
+struct Export {
+  struct Request {
+    std::string fileName;
 
     void serialize(CryptoNote::ISerializer& serializer);
   };
@@ -66,6 +82,20 @@ struct GetViewKey {
   };
 };
 
+struct GetMnemonicSeed {
+  struct Request {
+    std::string address;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+
+  struct Response {
+    std::string mnemonicSeed;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+};
+
 struct GetStatus {
   struct Request {
     void serialize(CryptoNote::ISerializer& serializer);
@@ -74,11 +104,31 @@ struct GetStatus {
   struct Response {
     uint32_t blockCount;
     uint32_t knownBlockCount;
+    uint32_t localDaemonBlockCount;
     std::string lastBlockHash;
     uint32_t peerCount;
+    uint64_t minimalFee;
+    std::string version;
 
     void serialize(CryptoNote::ISerializer& serializer);
   };
+};
+
+struct ValidateAddress {
+	struct Request {
+		std::string address;
+		
+		void serialize(CryptoNote::ISerializer& serializer);
+	};
+
+	struct Response {
+		bool isvalid;
+		std::string address;
+		std::string spendPublicKey;
+		std::string viewPublicKey;
+
+		void serialize(CryptoNote::ISerializer& serializer);
+	};
 };
 
 struct GetAddresses {
@@ -97,12 +147,30 @@ struct CreateAddress {
   struct Request {
     std::string spendSecretKey;
     std::string spendPublicKey;
+    uint32_t scanHeight = std::numeric_limits<uint32_t>::max();
+    bool reset;
 
     void serialize(CryptoNote::ISerializer& serializer);
   };
 
   struct Response {
     std::string address;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+};
+
+struct CreateAddressList {
+  struct Request {
+    std::vector<std::string> spendSecretKeys;
+    std::vector<uint32_t> scanHeights;
+    bool reset;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+
+  struct Response {
+    std::vector<std::string> addresses;
 
     void serialize(CryptoNote::ISerializer& serializer);
   };
@@ -202,6 +270,7 @@ struct TransactionRpcInfo {
   uint8_t state;
   std::string transactionHash;
   uint32_t blockIndex;
+  uint32_t confirmations;
   uint64_t timestamp;
   bool isBase;
   uint64_t unlockTime;
@@ -267,6 +336,52 @@ struct GetUnconfirmedTransactionHashes {
   };
 };
 
+struct GetTransactionSecretKey {
+  struct Request {
+    std::string transactionHash;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+
+  struct Response {
+    std::string transactionSecretKey;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+};
+
+struct GetTransactionProof {
+  struct Request {
+    std::string transactionHash;
+    std::string destinationAddress;
+    std::string transactionSecretKey;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+
+  struct Response {
+    std::string transactionProof;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+};
+
+struct GetReserveProof {
+  struct Request {
+    std::string address;
+	std::string message;
+	uint64_t amount = 0;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+
+  struct Response {
+    std::string reserveProof;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+};
+
 struct WalletRpcOrder {
   std::string address;
   uint64_t amount;
@@ -290,6 +405,7 @@ struct SendTransaction {
 
   struct Response {
     std::string transactionHash;
+	std::string transactionSecretKey;
 
     void serialize(CryptoNote::ISerializer& serializer);
   };

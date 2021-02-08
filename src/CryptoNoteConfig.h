@@ -1,4 +1,9 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero project
+// Copyright (c) 2014-2018, The Forknote developers
+// Copyright (c) 2018, Ryo Currency Project
+// Copyright (c) 2016-2018, The Karbowanec developers
+// Copyright (c) 2017-2020, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -15,52 +20,87 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
+// ------------------------------------------------------------ //
+// ------------------------ CROAT SPECS ----------------------- //
+// ------------------------------------------------------------ //
+//                                                              //
+//  COINS                         100.467.440,73709551615       //
+//  GENESIS_BLOCK_REWARD           15.070.116,11056432600       //
+//                                                              //
+//  COIN                                    1,00000000000       //
+//  MIN FEE                                 0,00001000000       //
+//  DUST                                    0,00001000000       //
+//                                                              //
+// ------------------------------------------------------------ //
+//                CROAT 2.0 by CROAT.community                  //
+// ------------------------------------------------------------ //
+
+
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 namespace CryptoNote {
 namespace parameters {
 
+const uint64_t DIFFICULTY_TARGET                             = 60; // seconds
+const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
 const uint64_t CRYPTONOTE_MAX_BLOCK_NUMBER                   = 500000000;
 const size_t   CRYPTONOTE_MAX_BLOCK_BLOB_SIZE                = 500000000;
 const size_t   CRYPTONOTE_MAX_TX_SIZE                        = 1000000000;
-const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 6;
-const size_t   CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 10;
-const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 60 * 60 * 2;
-
+const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 70; // CROAT
+const size_t   CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 7; // CROAT
+const size_t   CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW_V1       = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
+const size_t   CRYPTONOTE_TX_SPENDABLE_AGE                   = 6;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = DIFFICULTY_TARGET * 3;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V1         = DIFFICULTY_TARGET * 3;
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
+const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V1          = 11;
+
+// GENESIS_BLOCK_REWARD - First block reward (premined)
+const uint64_t GENESIS_BLOCK_REWARD                          = UINT64_C(1507011611056432600); // Premined 15% - CROAT
 
 // MONEY_SUPPLY - total number coins to be generated
-const uint64_t MONEY_SUPPLY                                  = static_cast<uint64_t>(-1);
-const uint32_t MANDATORY_TRANSACTION                          = 0;
-const uint32_t KILL_HEIGHT                          = 0;
-const size_t CRYPTONOTE_COIN_VERSION                          = 0;
-const unsigned EMISSION_SPEED_FACTOR                         = 18;
-const uint64_t GENESIS_BLOCK_REWARD                          = 1500000000000000000;
+const uint64_t MONEY_SUPPLY                                  = UINT64_C(10046744073709551615); // CROAT Total Supply
+const uint64_t COIN                                          = UINT64_C(100000000000);
+const uint64_t TAIL_EMISSION_REWARD                          = UINT64_C(100000000000);
+const size_t CRYPTONOTE_COIN_VERSION                         = 1;
+const unsigned EMISSION_SPEED_FACTOR                         = 20; // CROAT
 static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
 const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW               = 100;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE     = 100000; //size of block (bytes) after which reward for block calculated using block size
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2  = 20000;
+const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2  = 100000;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1  = 10000;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
 const size_t   CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE        = 600;
-const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 8;
-const uint64_t MINIMUM_FEE                                   = UINT64_C(1000000);    // pow(10, 6)
-const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(1000000);    // pow(10, 6)
-// Use 0 for default max transaction size limit
-const uint64_t MAX_TRANSACTION_SIZE_LIMIT                          = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 125 / 100 - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
-const uint64_t DEFAULT_FEE                          = MINIMUM_FEE;
+const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 11; // CROAT
 
-const uint64_t DIFFICULTY_TARGET                             = 120; // seconds
-const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
+const uint64_t MINIMUM_FEE                                   = UINT64_C(1000000);
+const uint64_t MAXIMUM_FEE                                   = UINT64_C(1000000);
+
+const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(1000000);
+const uint64_t MIN_TX_MIXIN_SIZE                             = 1;
+const uint64_t MAX_TX_MIXIN_SIZE                             = 5;
+
+//const uint64_t MAX_TRANSACTION_SIZE_LIMIT                    = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT / 4 - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
+const uint64_t MAX_TRANSACTION_SIZE_LIMIT                    = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 125 / 100 - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
+
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY; // blocks
+const size_t   DIFFICULTY_WINDOW_V2                          = DIFFICULTY_WINDOW;  // blocks v3
+const size_t   DIFFICULTY_WINDOW_V3                          = DIFFICULTY_WINDOW;  // blocks v2
+const size_t   DIFFICULTY_WINDOW_V4                          = 200;  // blocks V4
+
 const size_t   DIFFICULTY_CUT                                = 60;  // timestamps to cut after sorting
 const size_t   DIFFICULTY_LAG                                = 15;  // !!!
 static_assert(2 * DIFFICULTY_CUT <= DIFFICULTY_WINDOW - 2, "Bad DIFFICULTY_WINDOW or DIFFICULTY_CUT");
 
-const size_t   MAX_BLOCK_SIZE_INITIAL                        =  20 * 1024;
+const uint64_t POISSON_CHECK_TRIGGER = 10; // Reorg size that triggers poisson timestamp check
+const uint64_t POISSON_CHECK_DEPTH = 60;   // Main-chain depth of the poisson check. The attacker will have to tamper 50% of those blocks
+const double POISSON_LOG_P_REJECT = -75.0; // Reject reorg if the probablity that the timestamps are genuine is below e^x, -75 = 10^-33
+
+const size_t   MAX_BLOCK_SIZE_INITIAL                        = 100000;
 const uint64_t MAX_BLOCK_SIZE_GROWTH_SPEED_NUMERATOR         = 100 * 1024;
 const uint64_t MAX_BLOCK_SIZE_GROWTH_SPEED_DENOMINATOR       = 365 * 24 * 60 * 60 / DIFFICULTY_TARGET;
 
@@ -71,15 +111,18 @@ const uint64_t CRYPTONOTE_MEMPOOL_TX_LIVETIME                = 60 * 60 * 24;    
 const uint64_t CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME = 60 * 60 * 24 * 7; //seconds, one week
 const uint64_t CRYPTONOTE_NUMBER_OF_PERIODS_TO_FORGET_TX_DELETED_FROM_POOL = 7;  // CRYPTONOTE_NUMBER_OF_PERIODS_TO_FORGET_TX_DELETED_FROM_POOL * CRYPTONOTE_MEMPOOL_TX_LIVETIME = time to forget tx
 
-const size_t   FUSION_TX_MAX_SIZE                            = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT * 30 / 100;
+const size_t   FUSION_TX_MAX_SIZE                            = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1 * 30 / 100;
 const size_t   FUSION_TX_MIN_INPUT_COUNT                     = 12;
 const size_t   FUSION_TX_MIN_IN_OUT_COUNT_RATIO              = 4;
 
-const uint32_t UPGRADE_HEIGHT_V2                                = 546602;
-const uint32_t UPGRADE_HEIGHT_V3                                = 985548;
-const unsigned UPGRADE_VOTING_THRESHOLD = 90;               // percent
-const uint32_t   UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
-const uint32_t   UPGRADE_WINDOW                                = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
+const uint32_t UPGRADE_HEIGHT_V2                             = 1;
+const uint32_t UPGRADE_HEIGHT_V3                             = 2;
+const uint32_t UPGRADE_HEIGHT_V4                             = 1450000; // First CROAT Fork by CROAT.community
+const uint32_t UPGRADE_HEIGHT_V4_FIX_1                       = 1450920; // Fix v4 unlock time
+
+const unsigned UPGRADE_VOTING_THRESHOLD                      = 90; // percent
+const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
+const uint32_t UPGRADE_WINDOW                                = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
 static_assert(0 < UPGRADE_VOTING_THRESHOLD && UPGRADE_VOTING_THRESHOLD <= 100, "Bad UPGRADE_VOTING_THRESHOLD");
 static_assert(UPGRADE_VOTING_WINDOW > 1, "Bad UPGRADE_VOTING_WINDOW");
 
@@ -90,30 +133,39 @@ const char     CRYPTONOTE_POOLDATA_FILENAME[]                = "poolstate.bin";
 const char     P2P_NET_DATA_FILENAME[]                       = "p2pstate.bin";
 const char     CRYPTONOTE_BLOCKCHAIN_INDICES_FILENAME[]      = "blockchainindices.dat";
 const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json";
-const char     GENESIS_COINBASE_TX_HEX[]                     = "010a01ff0001ffffffffffff0f029b2e4c0281c0b02e7c53291a94d1d0cbff8883f8024f5142ee494ffbbd08807121013c086a48c15fb637a96991bc6d53caf77068b5ba6eeb3c82357228c49790584a";
 } // parameters
 
+// Cryptonote Name
 const char     CRYPTONOTE_NAME[]                             = "croat";
+
+// CROAT improvements
+const uint32_t MAX_BLOCKCHAIN_DIFF                           = 0; //Max Block height difference to sync. 0 to disable and permit sync from zero.
+
+// Normal
+const char     GENESIS_COINBASE_TX_HEX[]                     = "010701ff0001d8cba1abb6e2fef4140288ea25298cf01cbf265202303707116c16290882a0a3f47c60f7edd36a5f813c21011ba0f0ca3932e752111d5a4d8d03337cb44399d7e991bbc6148d018b35fd0a26";
+
+const char     DNS_CHECKPOINTS_HOST[]                        = "daemon.checkpoints.croat.community";
 
 const uint8_t  CURRENT_TRANSACTION_VERSION                   =  1;
 const uint8_t  BLOCK_MAJOR_VERSION_1                         =  1;
 const uint8_t  BLOCK_MAJOR_VERSION_2                         =  2;
 const uint8_t  BLOCK_MAJOR_VERSION_3                         =  3;
+const uint8_t  BLOCK_MAJOR_VERSION_4                         =  4;
 const uint8_t  BLOCK_MINOR_VERSION_0                         =  0;
 const uint8_t  BLOCK_MINOR_VERSION_1                         =  1;
 
 const size_t   BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT        =  10000;  //by default, blocks ids count in synchronizing
-const size_t   BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  200;    //by default, blocks count in blocks downloading
+const size_t   BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  128;    //by default, blocks count in blocks downloading
 const size_t   COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT         =  1000;
 
-const int      P2P_DEFAULT_PORT                              =  8080;
-const int      RPC_DEFAULT_PORT                              =  8081;
+const int      P2P_DEFAULT_PORT                              =  46347;
+const int      RPC_DEFAULT_PORT                              =  46348;
 
 const size_t   P2P_LOCAL_WHITE_PEERLIST_LIMIT                =  1000;
 const size_t   P2P_LOCAL_GRAY_PEERLIST_LIMIT                 =  5000;
 
-const size_t   P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE          = 16 * 1024 * 1024; // 16 MB
-const uint32_t P2P_DEFAULT_CONNECTIONS_COUNT                 = 8;
+const size_t   P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE          = 64 * 1024 * 1024; // 64 MB
+const uint32_t P2P_DEFAULT_CONNECTIONS_COUNT                 = 10;
 const size_t   P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT     = 70;
 const uint32_t P2P_DEFAULT_HANDSHAKE_INTERVAL                = 60;            // seconds
 const uint32_t P2P_DEFAULT_PACKET_MAX_SIZE                   = 50000000;      // 50000000 bytes maximum packet size
@@ -122,62 +174,35 @@ const uint32_t P2P_DEFAULT_CONNECTION_TIMEOUT                = 5000;          //
 const uint32_t P2P_DEFAULT_PING_CONNECTION_TIMEOUT           = 2000;          // 2 seconds
 const uint64_t P2P_DEFAULT_INVOKE_TIMEOUT                    = 60 * 2 * 1000; // 2 minutes
 const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 5000;          // 5 seconds
+const uint32_t P2P_FAILED_ADDR_FORGET_SECONDS                = (60 * 60);     //1 hour
+const uint32_t P2P_IP_BLOCKTIME                              = (60 * 60 * 24);//24 hour
+const uint32_t P2P_IP_FAILS_BEFORE_BLOCK                     = 10;
+const uint32_t P2P_IDLE_CONNECTION_KILL_INTERVAL             = (5 * 60);      //5 minutes
+
 const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "";
 
-const char* const SEED_NODES[] = { "seed.bytecoin.org:8080", "85.25.201.95:8080", "85.25.196.145:8080", "85.25.196.146:8080", "85.25.196.144:8080", "5.199.168.138:8080", "62.75.236.152:8080", "85.25.194.245:8080", "95.211.224.160:8080", "144.76.200.44:8080" };
-
-
-struct CheckpointData {
-  uint32_t height;
-  const char* blockId;
+const char* const SEED_NODES[] = { 
+  "173.199.71.78:46347",                // Node-01 CROAT.community
+  "104.238.167.37:46347",               // Node-02 CROAT.community
+  "199.247.17.199:46347",               // Node-04 CROAT.community  
+  "173.249.32.180:46347",               // Node-01 de CROAT Pirineus
+  "80.241.213.210:46347",               // Node-02 de CROAT Pirineus
+  "199.247.29.17:46347",                // Node de POOL.CAT 
+  "207.180.226.44:46347",               // Node de CROAT.pro
 };
 
-const std::initializer_list<CheckpointData> CHECKPOINTS = {
-  {79000,  "cae33204e624faeb64938d80073bb7bbacc27017dc63f36c5c0f313cad455a02"},
-  {140000, "993059fb6ab92db7d80d406c67a52d9c02d873ca34b6290a12b744c970208772"},
-  {200000, "a5f74c7542077df6859f48b5b1f9c3741f29df38f91a47e14c94b5696e6c3073"},
-  {230580, "32bd7cb6c68a599cf2861941f29002a5e203522b9af54f08dfced316f6459103"},
-  {260000, "f68e70b360ca194f48084da7a7fd8e0251bbb4b5587f787ca65a6f5baf3f5947"},
-  {300000, "8e80861713f68354760dc10ea6ea79f5f3ff28f39b3f0835a8637463b09d70ff"},
-  {390285, "e00bdc9bf407aeace2f3109de11889ed25894bf194231d075eddaec838097eb7"},
-  {417000, "2dc96f8fc4d4a4d76b3ed06722829a7ab09d310584b8ecedc9b578b2c458a69f"},
-  {427193, "00feabb08f2d5759ed04fd6b799a7513187478696bba2db2af10d4347134e311"},
-  {453537, "d17de6916c5aa6ffcae575309c80b0f8fdcd0a84b5fa8e41a841897d4b5a4e97"},
-  {462250, "13468d210a5ec884cf839f0259f247ccf3efef0414ac45172033d32c739beb3e"},
-  {468000, "251bcbd398b1f593193a7210934a3d87f692b2cb0c45206150f59683dd7e9ba1"},
-  {480200, "363544ac9920c778b815c2fdbcbca70a0d79b21f662913a42da9b49e859f0e5b"},
-  {484500, "5cdf2101a0a62a0ab2a1ca0c15a6212b21f6dbdc42a0b7c0bcf65ca40b7a14fb"},
-  {506000, "3d54c1132f503d98d3f0d78bb46a4503c1a19447cb348361a2232e241cb45a3c"},
-  {544000, "f69dc61b6a63217f32fa64d5d0f9bd920873f57dfd79ebe1d7d6fb1345b56fe0"},
-  {553300, "f7a5076b887ce5f4bb95b2729c0edb6f077a463f04f1bffe7f5cb0b16bb8aa5f"},
-  {580000, "93aea06936fa4dc0a84c9109c9d5f0e1b0815f96898171e42fd2973d262ed9ac"},
-  {602000, "a05fd2fccbb5f567ece940ebb62a82fdb1517ff5696551ae704e5f0ef8edb979"},
-  {623000, "7c92dd374efd0221065c7d98fce0568a1a1c130b5da28bb3f338cdc367b93d0b"},
-  {645000, "1eeba944c0dd6b9a1228a425a74076fbdbeaf9b657ba7ef02547d99f971de70d"},
-  {667000, "a020c8fcaa567845d04b520bb7ebe721e097a9bed2bdb8971081f933b5b42995"},
-  {689000, "212ec2698c5ebd15d6242d59f36c2d186d11bb47c58054f476dd8e6b1c7f0008"},
-  {713000, "a03f836c4a19f907cd6cac095eb6f56f5279ca2d1303fb7f826750dcb9025495"},
-  {750300, "5117631dbeb5c14748a91127a515ecbf13f6849e14fda7ee03cd55da41f1710c"},
-  {780000, "8dd55a9bae429e3685b90317281e633917023d3512eb7f37372209d1a5fc1070"},
-  {785500, "de1a487d70964d25ed6f7de196866f357a293e867ee81313e7fd0352d0126bdd"},
-  {789000, "acef490bbccce3b7b7ae8554a414f55413fbf4ca1472c6359b126a4439bd9f01"},
-  {796000, "04e387a00d35db21d4d93d04040b31f22573972a7e61d72cc07d0ab69bcb9c44"},
-  {800000, "d7fa4eea02e5ce60b949136569c0ea7ac71ea46e0065311054072ac415560b86"},
-  {804000, "bcc8b3782499aae508c40d5587d1cc5d68281435ea9bfc6804a262047f7b934d"},
-  {810500, "302b2349f221232820adc3dadafd8a61b035491e33af669c78a687949eb0a381"},
-  {816000, "32b7fdd4e4d715db81f8f09f4ba5e5c78e8113f2804d61a57378baee479ce745"},
-  {822000, "a3c9603c6813a0dc0efc40db288c356d1a7f02d1d2e47bee04346e73715f8984"},
-  {841000, "2cffb6504ee38f708a6256a63585f9382b3b426e64b4504236c70678bd160dce"},
-  {890000, "a7132932ea31236ce6b8775cd1380edf90b5e536ee4202c77b69a3d62445fcd2"},
-  {894000, "ae2624ea1472ecc36de0d812f21a32da2d4afc7d5770830083cbaf652209d316"},
-  {979000, "d8290eb4eedbe638f5dbadebcaf3ea434857ce96168185dc04f75b6cc1f4fda6"},
-  {985548, "8d53e0d97594755a621feaee0978c0431fc01f42b85ff76a03af8641e2009d57"},
-  {985549, "dc6f8d9319282475c981896b98ff9772ae2499533c2302c32faf65115aaf2554"},
-  {996000, "c9a9243049acc7773a3e58ae354d66f8ea83996ece93ffbaad0b8b42b5fb7223"},
-  {1021000, "a0c4107d327ffeb31dabe135a7124191b0a5ef7c4fa34f06babc1f0546ab938e"}
+const char* const TRUSTED_NODES[] = {
+  "173.199.71.78",                  // Node-01 CROAT.community
+  "104.238.167.37",                 // Node-02 CROAT.community
+  "199.247.17.199",                 // Node-04 CROAT.community
+  "173.249.32.180",                 // Node-01 de CROAT Pirineus
+  "80.241.213.210",                 // Node-02 de CROAT Pirineus
+  "199.247.29.17",                  // Node de POOL.CAT 
+  "207.180.226.44",                 // Node de CROAT.pro
 };
+
 } // CryptoNote
 
-#define ALLOW_DEBUG_COMMANDS
+
 
 

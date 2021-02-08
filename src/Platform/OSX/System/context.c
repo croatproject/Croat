@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -16,7 +17,7 @@
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string.h>
-#include "context.h"
+#include "Context.h"
 
 void
 makecontext(uctx *ucp, void (*func)(void), intptr_t arg)

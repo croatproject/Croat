@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -53,7 +54,7 @@ public:
   static const uint8_t SERIALIZATION_VERSION = 6;
 
 private:
-  void loadKeyListAndBanalces(CryptoNote::ISerializer& serializer, bool saveCache);
+  void loadKeyListAndBalances(CryptoNote::ISerializer& serializer, bool saveCache);
   void saveKeyListAndBanalces(CryptoNote::ISerializer& serializer, bool saveCache);
     
   void loadTransactions(CryptoNote::ISerializer& serializer);

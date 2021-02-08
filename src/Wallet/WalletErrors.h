@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -54,7 +55,10 @@ enum WalletErrorCodes {
   DESTINATION_ADDRESS_REQUIRED,
   DESTINATION_ADDRESS_NOT_FOUND,
   BAD_PAYMENT_ID,
-  BAD_TRANSACTION_EXTRA
+  BAD_TRANSACTION_EXTRA,
+  MIXIN_COUNT_TOO_SMALL,
+  MIXIN_COUNT_TOO_LARGE,
+  WRONG_TX_SECRET_KEY
 };
 
 // custom category:
@@ -101,6 +105,9 @@ public:
     case DESTINATION_ADDRESS_NOT_FOUND: return "Destination address not found";
     case BAD_PAYMENT_ID:                return "Wrong payment id format";
     case BAD_TRANSACTION_EXTRA:         return "Wrong transaction extra format";
+    case MIXIN_COUNT_TOO_SMALL:         return "MixIn count is below the required minimum";
+    case MIXIN_COUNT_TOO_LARGE:         return "MixIn count is over the maximum allowed";
+    case WRONG_TX_SECRET_KEY:           return "Wrong transaction secret key";
     default:                            return "Unknown error";
     }
   }
@@ -115,11 +122,4 @@ private:
 
 inline std::error_code make_error_code(CryptoNote::error::WalletErrorCodes e) {
   return std::error_code(static_cast<int>(e), CryptoNote::error::WalletErrorCategory::INSTANCE);
-}
-
-namespace std {
-
-template <>
-struct is_error_code_enum<CryptoNote::error::WalletErrorCodes>: public true_type {};
-
 }

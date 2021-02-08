@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -67,12 +68,13 @@ namespace CryptoNote
     stop();
   }
   //-----------------------------------------------------------------------------------------------------
-  bool miner::set_block_template(const Block& bl, const difficulty_type& di) {
+  bool miner::set_block_template(const Block& bl, const difficulty_type& di, uint32_t& height) {
     std::lock_guard<decltype(m_template_lock)> lk(m_template_lock);
 
     m_template = bl;
+    m_height = height;
 
-    if (m_template.majorVersion >= BLOCK_MAJOR_VERSION_2) {
+    if (m_template.majorVersion == BLOCK_MAJOR_VERSION_2 || m_template.majorVersion == BLOCK_MAJOR_VERSION_3) {
       CryptoNote::TransactionExtraMergeMiningTag mm_tag;
       mm_tag.depth = 0;
       if (!CryptoNote::get_aux_block_header_hash(m_template, mm_tag.merkleRoot)) {
@@ -114,7 +116,7 @@ namespace CryptoNote
       return false;
     }
 
-    set_block_template(bl, di);
+    set_block_template(bl, di, height);
     return true;
   }
   //-----------------------------------------------------------------------------------------------------
@@ -367,6 +369,7 @@ namespace CryptoNote
     logger(INFO) << "Miner thread was started ["<< th_local_index << "]";
     uint32_t nonce = m_starter_nonce + th_local_index;
     difficulty_type local_diff = 0;
+    uint32_t block_height = 0;
     uint32_t local_template_ver = 0;
     Crypto::cn_context context;
     Block b;
@@ -383,6 +386,7 @@ namespace CryptoNote
         std::unique_lock<std::mutex> lk(m_template_lock);
         b = m_template;
         local_diff = m_diffic;
+        block_height = m_height;
         lk.unlock();
 
         local_template_ver = m_template_no;
@@ -408,7 +412,7 @@ namespace CryptoNote
         //we lucky!
         ++m_config.current_extra_message_index;
 
-        logger(INFO, GREEN) << "Found block for difficulty: " << local_diff;
+        logger(INFO, GREEN) << "Found block with height " << m_height << " for difficulty: " << local_diff;
 
         if(!m_handler.handle_block_found(b)) {
           --m_config.current_extra_message_index;

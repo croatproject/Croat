@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -17,6 +18,7 @@
 
 #include "Ipv4Address.h"
 #include <stdexcept>
+#include "android.h"
 
 namespace System {
 
@@ -115,11 +117,11 @@ bool Ipv4Address::isLoopback() const {
 bool Ipv4Address::isPrivate() const {
   return
     // 10.0.0.0/8
-    (value & 0xff000000) == (10 << 24) ||
+    (int)(value & 0xff000000) == (int)(10 << 24) ||
     // 172.16.0.0/12
-    (value & 0xfff00000) == ((172 << 24) | (16 << 16)) ||
+    (int)(value & 0xfff00000) == (int)((172 << 24) | (16 << 16)) ||
     // 192.168.0.0/16
-    (value & 0xffff0000) == ((192 << 24) | (168 << 16));
+    (int)(value & 0xffff0000) == (int)((192 << 24) | (168 << 16));
 }
 
 }

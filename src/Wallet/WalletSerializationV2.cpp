@@ -1,4 +1,6 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018, Karbo developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -49,6 +51,8 @@ struct WalletTransactionDtoV2 {
     unlockTime = wallet.unlockTime;
     extra = wallet.extra;
     isBase = wallet.isBase;
+    if (wallet.secretKey)
+      secretKey = reinterpret_cast<const Crypto::SecretKey&>(wallet.secretKey.get());
   }
 
   CryptoNote::WalletTransactionState state;
@@ -61,6 +65,7 @@ struct WalletTransactionDtoV2 {
   uint64_t unlockTime;
   std::string extra;
   bool isBase;
+  boost::optional<Crypto::SecretKey> secretKey = CryptoNote::NULL_SECRET_KEY;
 };
 
 //DO NOT CHANGE IT
@@ -101,6 +106,10 @@ void serialize(WalletTransactionDtoV2& value, CryptoNote::ISerializer& serialize
   serializer(value.unlockTime, "unlockTime");
   serializer(value.extra, "extra");
   serializer(value.isBase, "isBase");
+
+  Crypto::SecretKey secretKey = reinterpret_cast<const Crypto::SecretKey&>(value.secretKey.get());
+  serializer(secretKey, "secret_key");
+  value.secretKey = secretKey;
 }
 
 void serialize(WalletTransferDtoV2& value, CryptoNote::ISerializer& serializer) {
@@ -149,7 +158,7 @@ void WalletSerializerV2::load(Common::IInputStream& source, uint8_t version) {
   s(saveLevelValue, "saveLevel");
   WalletSaveLevel saveLevel = static_cast<WalletSaveLevel>(saveLevelValue);
 
-  loadKeyListAndBanalces(s, saveLevel == WalletSaveLevel::SAVE_ALL);
+  loadKeyListAndBalances(s, saveLevel == WalletSaveLevel::SAVE_ALL);
 
   if (saveLevel == WalletSaveLevel::SAVE_KEYS_AND_TRANSACTIONS || saveLevel == WalletSaveLevel::SAVE_ALL) {
     loadTransactions(s);
@@ -195,7 +204,7 @@ std::unordered_set<Crypto::PublicKey>& WalletSerializerV2::deletedKeys() {
   return m_deletedKeys;
 }
 
-void WalletSerializerV2::loadKeyListAndBanalces(CryptoNote::ISerializer& serializer, bool saveCache) {
+void WalletSerializerV2::loadKeyListAndBalances(CryptoNote::ISerializer& serializer, bool saveCache) {
   size_t walletCount;
   serializer(walletCount, "walletCount");
 
@@ -273,6 +282,8 @@ void WalletSerializerV2::loadTransactions(CryptoNote::ISerializer& serializer) {
     tx.unlockTime = dto.unlockTime;
     tx.extra = dto.extra;
     tx.isBase = dto.isBase;
+    if (dto.secretKey)
+      tx.secretKey = reinterpret_cast<const Crypto::SecretKey&>(dto.secretKey.get());
 
     m_transactions.get<RandomAccessIndex>().emplace_back(std::move(tx));
   }

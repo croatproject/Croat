@@ -1,4 +1,8 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014 - 2017 XDN - project developers
+// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2016-2019 The Karbo developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -24,10 +28,12 @@
 #include "Logging/LoggerRef.h"
 #include "PaymentGate/PaymentServiceJsonRpcServer.h"
 
+#include "CheckpointsData.h"
 #include "CryptoNoteCore/CoreConfig.h"
 #include "CryptoNoteCore/Core.h"
 #include "CryptoNoteProtocol/CryptoNoteProtocolHandler.h"
 #include "P2p/NetNode.h"
+#include "Rpc/RpcServer.h"
 #include <System/Context.h>
 #include "Wallet/WalletGreen.h"
 
@@ -77,45 +83,6 @@ bool PaymentGateService::init(int argc, char** argv) {
 
   Logging::LoggerRef log(logger, "main");
 
-  currencyBuilder.genesisCoinbaseTxHex(config.coinBaseConfig.GENESIS_COINBASE_TX_HEX);
-  currencyBuilder.publicAddressBase58Prefix(config.coinBaseConfig.CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX);
-  currencyBuilder.moneySupply(config.coinBaseConfig.MONEY_SUPPLY);
-  currencyBuilder.genesisBlockReward(config.coinBaseConfig.GENESIS_BLOCK_REWARD);
-  currencyBuilder.cryptonoteCoinVersion(config.coinBaseConfig.CRYPTONOTE_COIN_VERSION);
-  currencyBuilder.killHeight(config.coinBaseConfig.KILL_HEIGHT);
-  currencyBuilder.mandatoryTransaction(config.coinBaseConfig.MANDATORY_TRANSACTION);
-  currencyBuilder.emissionSpeedFactor(config.coinBaseConfig.EMISSION_SPEED_FACTOR);
-  currencyBuilder.blockGrantedFullRewardZone(config.coinBaseConfig.CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE);
-  currencyBuilder.blockGrantedFullRewardZoneV1(config.coinBaseConfig.CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1);
-  currencyBuilder.blockGrantedFullRewardZoneV2(config.coinBaseConfig.CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2);
-  currencyBuilder.numberOfDecimalPlaces(config.coinBaseConfig.CRYPTONOTE_DISPLAY_DECIMAL_POINT);
-  currencyBuilder.mininumFee(config.coinBaseConfig.MINIMUM_FEE);
-  currencyBuilder.defaultDustThreshold(config.coinBaseConfig.DEFAULT_DUST_THRESHOLD);
-  currencyBuilder.difficultyTarget(config.coinBaseConfig.DIFFICULTY_TARGET);
-  currencyBuilder.minedMoneyUnlockWindow(config.coinBaseConfig.CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW);
-  currencyBuilder.maxBlockSizeInitial(config.coinBaseConfig.MAX_BLOCK_SIZE_INITIAL);
-  if (config.coinBaseConfig.EXPECTED_NUMBER_OF_BLOCKS_PER_DAY && config.coinBaseConfig.EXPECTED_NUMBER_OF_BLOCKS_PER_DAY != 0)
-  {
-    currencyBuilder.difficultyWindow(config.coinBaseConfig.EXPECTED_NUMBER_OF_BLOCKS_PER_DAY);
-    currencyBuilder.upgradeVotingWindow(config.coinBaseConfig.EXPECTED_NUMBER_OF_BLOCKS_PER_DAY);
-    currencyBuilder.upgradeWindow(config.coinBaseConfig.EXPECTED_NUMBER_OF_BLOCKS_PER_DAY);
-  } else {
-    currencyBuilder.difficultyWindow(24 * 60 * 60 / config.coinBaseConfig.DIFFICULTY_TARGET);
-  }
-  currencyBuilder.maxBlockSizeGrowthSpeedDenominator(365 * 24 * 60 * 60 / config.coinBaseConfig.DIFFICULTY_TARGET);
-  currencyBuilder.lockedTxAllowedDeltaSeconds(config.coinBaseConfig.DIFFICULTY_TARGET * CryptoNote::parameters::CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS);
-  if (config.coinBaseConfig.UPGRADE_HEIGHT_V2 && config.coinBaseConfig.UPGRADE_HEIGHT_V2 != 0)
-  {
-    currencyBuilder.upgradeHeightV2(config.coinBaseConfig.UPGRADE_HEIGHT_V2);
-  }
-  if (config.coinBaseConfig.UPGRADE_HEIGHT_V3 && config.coinBaseConfig.UPGRADE_HEIGHT_V3 != 0)
-  {
-    currencyBuilder.upgradeHeightV3(config.coinBaseConfig.UPGRADE_HEIGHT_V3);
-  }
-  currencyBuilder.difficultyLag(config.coinBaseConfig.DIFFICULTY_LAG);
-currencyBuilder.maxTransactionSizeLimit(config.coinBaseConfig.MAX_TRANSACTION_SIZE_LIMIT);
-currencyBuilder.fusionTxMaxSize(config.coinBaseConfig.MAX_TRANSACTION_SIZE_LIMIT * 30 / 100);
-  currencyBuilder.difficultyCut(config.coinBaseConfig.DIFFICULTY_CUT);
   if (config.gateConfiguration.testnet) {
     log(Logging::INFO) << "Starting in testnet mode";
     currencyBuilder.testnet(true);
@@ -142,7 +109,10 @@ WalletConfiguration PaymentGateService::getWalletConfig() const {
   return WalletConfiguration{
     config.gateConfiguration.containerFile,
     config.gateConfiguration.containerPassword,
-    config.gateConfiguration.syncFromZero
+    config.gateConfiguration.secretViewKey,
+    config.gateConfiguration.secretSpendKey,
+    config.gateConfiguration.mnemonicSeed,
+    config.gateConfiguration.generateDeterministic
   };
 }
 
@@ -151,7 +121,7 @@ const CryptoNote::Currency PaymentGateService::getCurrency() {
 }
 
 void PaymentGateService::run() {
-  
+
   System::Dispatcher localDispatcher;
   System::Event localStopEvent(localDispatcher);
 
@@ -204,6 +174,15 @@ void PaymentGateService::runInProcess(Logging::LoggerRef& log) {
 
   CryptoNote::CryptoNoteProtocolHandler protocol(currency, *dispatcher, core, NULL, logger);
   CryptoNote::NodeServer p2pNode(*dispatcher, protocol, logger);
+  CryptoNote::RpcServer rpcServer(*dispatcher, logger, core, p2pNode, protocol);
+  CryptoNote::Checkpoints checkpoints(logger);
+  for (const auto& cp : CryptoNote::CHECKPOINTS) {
+    checkpoints.add_checkpoint(cp.height, cp.blockId);
+  }
+  checkpoints.load_checkpoints_from_dns();
+  if (!config.gateConfiguration.testnet) {
+    core.set_checkpoints(std::move(checkpoints));
+  }
 
   protocol.set_p2p_endpoint(&p2pNode);
   core.set_cryptonote_protocol(&protocol);
@@ -237,10 +216,15 @@ void PaymentGateService::runInProcess(Logging::LoggerRef& log) {
     throw std::system_error(ec);
   }
 
+  log(Logging::INFO) << "Starting core rpc server on "
+	  << config.remoteNodeConfig.daemonHost << ":" << config.remoteNodeConfig.daemonPort;
+  rpcServer.start(config.remoteNodeConfig.daemonHost, config.remoteNodeConfig.daemonPort);
+  log(Logging::INFO) << "Core rpc server started ok";
+
   log(Logging::INFO) << "Spawning p2p server";
 
   System::Event p2pStarted(*dispatcher);
-  
+
   System::Context<> context(*dispatcher, [&]() {
     p2pStarted.set();
     p2pNode.run();
@@ -250,20 +234,23 @@ void PaymentGateService::runInProcess(Logging::LoggerRef& log) {
 
   runWalletService(currency, *node);
 
+  log(Logging::INFO) << "Stopping core rpc server...";
+  rpcServer.stop();
+
   p2pNode.sendStopSignal();
   context.get();
   node->shutdown();
   core.deinit();
-  p2pNode.deinit(); 
+  p2pNode.deinit();
 }
 
 void PaymentGateService::runRpcProxy(Logging::LoggerRef& log) {
   log(Logging::INFO) << "Starting Payment Gate with remote node";
   CryptoNote::Currency currency = currencyBuilder.currency();
-  
+
   std::unique_ptr<CryptoNote::INode> node(
     PaymentService::NodeFactory::createNode(
-      config.remoteNodeConfig.daemonHost, 
+      config.remoteNodeConfig.daemonHost,
       config.remoteNodeConfig.daemonPort));
 
   runWalletService(currency, *node);
@@ -272,8 +259,7 @@ void PaymentGateService::runRpcProxy(Logging::LoggerRef& log) {
 void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, CryptoNote::INode& node) {
   PaymentService::WalletConfiguration walletConfiguration{
     config.gateConfiguration.containerFile,
-    config.gateConfiguration.containerPassword,
-    config.gateConfiguration.syncFromZero
+    config.gateConfiguration.containerPassword
   };
 
   std::unique_ptr<CryptoNote::WalletGreen> wallet(new CryptoNote::WalletGreen(*dispatcher, currency, node, logger));
@@ -296,7 +282,7 @@ void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, 
     }
   } else {
     PaymentService::PaymentServiceJsonRpcServer rpcServer(*dispatcher, *stopEvent, *service, logger);
-    rpcServer.start(config.gateConfiguration.bindAddress, config.gateConfiguration.bindPort);
+    rpcServer.start(config.gateConfiguration.bindAddress, config.gateConfiguration.bindPort, config.gateConfiguration.m_rpcUser, config.gateConfiguration.m_rpcPassword);
 
     Logging::LoggerRef(logger, "PaymentGateService")(Logging::INFO, Logging::BRIGHT_WHITE) << "JSON-RPC server stopped, stopping wallet service...";
 

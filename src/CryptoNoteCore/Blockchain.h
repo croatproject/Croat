@@ -1,4 +1,6 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2016, The Karbowanec developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -22,6 +24,14 @@
 #include "google/sparse_hash_set"
 #include "google/sparse_hash_map"
 
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
+
 #include "Common/ObserverManager.h"
 #include "Common/Util.h"
 #include "CryptoNoteCore/BlockIndex.h"
@@ -44,6 +54,7 @@
 #undef ERROR
 
 namespace CryptoNote {
+
   struct NOTIFY_REQUEST_GET_OBJECTS_request;
   struct NOTIFY_RESPONSE_GET_OBJECTS_request;
   struct COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS_request;
@@ -71,7 +82,6 @@ namespace CryptoNote {
     bool getLowerBound(uint64_t timestamp, uint64_t startOffset, uint32_t& height);
     std::vector<Crypto::Hash> getBlockIds(uint32_t startHeight, uint32_t maxCount);
 
-    Checkpoints getCheckpoints() { return m_checkpoints; }
     void setCheckpoints(Checkpoints&& chk_pts) { m_checkpoints = chk_pts; }
     bool getBlocks(uint32_t start_offset, uint32_t count, std::list<Block>& blocks, std::list<Transaction>& txs);
     bool getBlocks(uint32_t start_offset, uint32_t count, std::list<Block>& blocks);
@@ -90,8 +100,11 @@ namespace CryptoNote {
     Crypto::Hash getTailId();
     Crypto::Hash getTailId(uint32_t& height);
     difficulty_type getDifficultyForNextBlock();
+	uint64_t getBlockTimestamp(uint32_t height);
+	uint64_t getMinimalFee(uint32_t height);
     uint64_t getCoinsInCirculation();
     uint8_t getBlockMajorVersionForHeight(uint32_t height) const;
+	uint8_t blockMajorVersion;
     bool addNewBlock(const Block& bl_, block_verification_context& bvc);
     bool resetAndSetGenesisBlock(const Block& b);
     bool haveBlock(const Crypto::Hash& id);
@@ -109,6 +122,7 @@ namespace CryptoNote {
     bool checkTransactionInputs(const Transaction& tx, uint32_t& pmax_used_block_height, Crypto::Hash& max_used_block_id, BlockInfo* tail = 0);
     uint64_t getCurrentCumulativeBlocksizeLimit();
     uint64_t blockDifficulty(size_t i);
+    uint64_t blockCumulativeDifficulty(size_t i);
     bool getBlockContainingTransaction(const Crypto::Hash& txId, Crypto::Hash& blockId, uint32_t& blockHeight);
     bool getAlreadyGeneratedCoins(const Crypto::Hash& hash, uint64_t& generatedCoins);
     bool getBlockSize(const Crypto::Hash& hash, size_t& size);
@@ -118,6 +132,8 @@ namespace CryptoNote {
     bool getBlockIdsByTimestamp(uint64_t timestampBegin, uint64_t timestampEnd, uint32_t blocksNumberLimit, std::vector<Crypto::Hash>& hashes, uint32_t& blocksNumberWithinTimestamps);
     bool getTransactionIdsByPaymentId(const Crypto::Hash& paymentId, std::vector<Crypto::Hash>& transactionHashes);
     bool isBlockInMainChain(const Crypto::Hash& blockId);
+    bool isInCheckpointZone(const uint32_t height);
+    uint64_t getAvgDifficultyForHeight(uint32_t height, uint32_t window);
 
     template<class visitor_t> bool scanOutputKeysForIndexes(const KeyInput& tx_in_to_key, visitor_t& vis, uint32_t* pmax_related_block_height = NULL);
 
@@ -129,16 +145,20 @@ namespace CryptoNote {
       std::lock_guard<std::recursive_mutex> lk(m_blockchain_lock);
 
       for (const auto& bl_id : block_ids) {
-        uint32_t height = 0;
-        if (!m_blockIndex.getBlockHeight(bl_id, height)) {
-          missed_bs.push_back(bl_id);
-        } else {
-          if (!(height < m_blocks.size())) { logger(Logging::ERROR, Logging::BRIGHT_RED) << "Internal error: bl_id=" << Common::podToHex(bl_id)
+        try {
+          uint32_t height = 0;
+          if (!m_blockIndex.getBlockHeight(bl_id, height)) {
+            missed_bs.push_back(bl_id);
+          } else {
+            if (!(height < m_blocks.size())) { logger(Logging::ERROR, Logging::BRIGHT_RED) << "Internal error: bl_id=" << Common::podToHex(bl_id)
             << " have index record with offset=" << height << ", bigger then m_blocks.size()=" << m_blocks.size(); return false; }
             blocks.push_back(m_blocks[height].bl);
+          }
+        } catch (const std::exception& e) {
+          logger(Logging::ERROR, Logging::BRIGHT_RED) << "Exception in Core getBlocks: " << e.what();
+          return false;
         }
       }
-
       return true;
     }
 
@@ -187,6 +207,27 @@ namespace CryptoNote {
       }
     };
 
+    struct SpentKeyImage {
+      uint32_t blockIndex;
+      Crypto::KeyImage keyImage;
+
+      void serialize(ISerializer& s) {
+        s(blockIndex, "block_index");
+        s(keyImage, "key_image");
+      }
+    };
+
+    void rollbackBlockchainTo(uint32_t height);
+    bool have_tx_keyimg_as_spent(const Crypto::KeyImage &key_im);
+
+    bool checkIfSpent(const Crypto::KeyImage& keyImage, uint32_t blockIndex);
+    bool checkIfSpent(const Crypto::KeyImage& keyImage);
+    bool is_tx_spendtime_unlocked(uint64_t unlock_time);
+    bool is_tx_spendtime_unlocked(uint64_t unlock_time, uint32_t height);
+
+    //bool checkIfSpentMultisignature(uint64_t amount, uint32_t globalIndex) const override;
+    //bool checkIfSpentMultisignature(uint64_t amount, uint32_t globalIndex, uint32_t blockIndex) const override;
+
   private:
 
     struct MultisignatureOutputUsage {
@@ -229,7 +270,22 @@ namespace CryptoNote {
       }
     };
 
-    typedef google::sparse_hash_set<Crypto::KeyImage> key_images_container;
+    struct BlockIndexTag {};
+    struct KeyImageTag {};
+
+    typedef boost::multi_index_container<
+      SpentKeyImage,
+      boost::multi_index::indexed_by<
+      boost::multi_index::ordered_non_unique<
+      boost::multi_index::tag<BlockIndexTag>,
+      BOOST_MULTI_INDEX_MEMBER(SpentKeyImage, uint32_t, blockIndex)
+      >,
+      boost::multi_index::hashed_unique<
+      boost::multi_index::tag<KeyImageTag>,
+      BOOST_MULTI_INDEX_MEMBER(SpentKeyImage, Crypto::KeyImage, keyImage)
+      >
+      >
+    > SpentKeyImagesContainer;
     typedef std::unordered_map<Crypto::Hash, BlockEntry> blocks_ext_by_hash;
     typedef google::sparse_hash_map<uint64_t, std::vector<std::pair<TransactionIndex, uint16_t>>> outputs_container; //Crypto::Hash - tx hash, size_t - index of out in transaction
     typedef google::sparse_hash_map<uint64_t, std::vector<MultisignatureOutputUsage>> MultisignatureOutputsContainer;
@@ -240,7 +296,7 @@ namespace CryptoNote {
     Crypto::cn_context m_cn_context;
     Tools::ObserverManager<IBlockchainStorageObserver> m_observerManager;
 
-    key_images_container m_spent_keys;
+    SpentKeyImagesContainer spentKeyImages;
     size_t m_current_block_cumul_sz_limit;
     blocks_ext_by_hash m_alternative_chains; // Crypto::Hash -> block_extended_info
     outputs_container m_outputs;
@@ -263,11 +319,12 @@ namespace CryptoNote {
     MultisignatureOutputsContainer m_multisignatureOutputs;
     UpgradeDetector m_upgradeDetectorV2;
     UpgradeDetector m_upgradeDetectorV3;
+	UpgradeDetector m_upgradeDetectorV4;
 
     PaymentIdIndex m_paymentIdIndex;
     TimestampBlocksIndex m_timestampIndex;
     GeneratedTransactionsIndex m_generatedTransactionsIndex;
-    OrphanBlocksIndex m_orthanBlocksIndex;
+    OrphanBlocksIndex m_orphanBlocksIndex;
     bool m_blockchainIndexesEnabled;
 
     IntrusiveLinkedList<MessageQueue<BlockchainMessage>> m_messageQueueList;
@@ -284,22 +341,20 @@ namespace CryptoNote {
     bool rollback_blockchain_switching(std::list<Block>& original_chain, size_t rollback_height);
     bool get_last_n_blocks_sizes(std::vector<size_t>& sz, size_t count);
     bool add_out_to_get_random_outs(std::vector<std::pair<TransactionIndex, uint16_t>>& amount_outs, COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS_outs_for_amount& result_outs, uint64_t amount, size_t i);
-    bool is_tx_spendtime_unlocked(uint64_t unlock_time);
     size_t find_end_of_allowed_index(const std::vector<std::pair<TransactionIndex, uint16_t>>& amount_outs);
     bool check_block_timestamp_main(const Block& b);
     bool check_block_timestamp(std::vector<uint64_t> timestamps, const Block& b);
     uint64_t get_adjusted_time();
-    bool complete_timestamps_vector(uint64_t start_height, std::vector<uint64_t>& timestamps);
+	bool complete_timestamps_vector(uint8_t blockMajorVersion, uint64_t start_height, std::vector<uint64_t>& timestamps);
     bool checkBlockVersion(const Block& b, const Crypto::Hash& blockHash);
     bool checkParentBlockSize(const Block& b, const Crypto::Hash& blockHash);
     bool checkCumulativeBlockSize(const Crypto::Hash& blockId, size_t cumulativeBlockSize, uint64_t height);
     std::vector<Crypto::Hash> doBuildSparseChain(const Crypto::Hash& startBlockId) const;
     bool getBlockCumulativeSize(const Block& block, size_t& cumulativeSize);
-    bool update_next_comulative_size_limit();
+    bool update_next_cumulative_size_limit();
     bool check_tx_input(const KeyInput& txin, const Crypto::Hash& tx_prefix_hash, const std::vector<Crypto::Signature>& sig, uint32_t* pmax_related_block_height = NULL);
     bool checkTransactionInputs(const Transaction& tx, const Crypto::Hash& tx_prefix_hash, uint32_t* pmax_used_block_height = NULL);
     bool checkTransactionInputs(const Transaction& tx, uint32_t* pmax_used_block_height = NULL);
-    bool have_tx_keyimg_as_spent(const Crypto::KeyImage &key_im);
     const TransactionEntry& transactionByIndex(TransactionIndex index);
     bool pushBlock(const Block& blockData, block_verification_context& bvc);
     bool pushBlock(const Block& blockData, const std::vector<Transaction>& transactions, block_verification_context& bvc);
@@ -310,7 +365,6 @@ namespace CryptoNote {
     void popTransactions(const BlockEntry& block, const Crypto::Hash& minerTransactionHash);
     bool validateInput(const MultisignatureInput& input, const Crypto::Hash& transactionHash, const Crypto::Hash& transactionPrefixHash, const std::vector<Crypto::Signature>& transactionSignatures);
     bool checkCheckpoints(uint32_t& lastValidCheckpointHeight);
-    void rollbackBlockchainTo(uint32_t height);
     void removeLastBlock();
     bool checkUpgradeHeight(const UpgradeDetector& upgradeDetector);
 

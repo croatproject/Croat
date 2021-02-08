@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -105,33 +106,37 @@ void WalletHelper::IWalletRemoveObserverGuard::removeObserver() {
   m_removed = true;
 }
 
-void WalletHelper::storeWallet(CryptoNote::IWalletLegacy& wallet, const std::string& walletFilename) {
-  boost::filesystem::path tempFile = boost::filesystem::unique_path(walletFilename + ".tmp.%%%%-%%%%");
+bool WalletHelper::storeWallet(CryptoNote::IWalletLegacy& wallet, const std::string& walletFilename) {
+	boost::filesystem::path tempFile = boost::filesystem::unique_path(walletFilename + ".tmp.%%%%-%%%%");
 
-  if (boost::filesystem::exists(walletFilename)) {
-    boost::filesystem::rename(walletFilename, tempFile);
-  }
+	if (boost::filesystem::exists(walletFilename)) {
+		boost::filesystem::rename(walletFilename, tempFile);
+	}
 
-  std::ofstream file;
-  try {
-    openOutputFileStream(walletFilename, file);
-  } catch (std::exception&) {
-    if (boost::filesystem::exists(tempFile)) {
-      boost::filesystem::rename(tempFile, walletFilename);
-    }
-    throw;
-  }
+	std::ofstream file;
+	try {
+		openOutputFileStream(walletFilename, file);
+	}
+	catch (std::exception&) {
+		if (boost::filesystem::exists(tempFile)) {
+			boost::filesystem::rename(tempFile, walletFilename);
+		}
+		throw;
+	}
 
-  std::error_code saveError = walletSaveWrapper(wallet, file, true, true);
-  if (saveError) {
-    file.close();
-    boost::filesystem::remove(walletFilename);
-    boost::filesystem::rename(tempFile, walletFilename);
-    throw std::system_error(saveError);
-  }
+	std::error_code saveError = walletSaveWrapper(wallet, file, true, true);
+	if (saveError) {
+		file.close();
+		boost::filesystem::remove(walletFilename);
+		boost::filesystem::rename(tempFile, walletFilename);
+		throw std::system_error(saveError);
+		return false;
+	}
 
-  file.close();
+	file.close();
 
-  boost::system::error_code ignore;
-  boost::filesystem::remove(tempFile, ignore);
+	boost::system::error_code ignore;
+	boost::filesystem::remove(tempFile, ignore);
+
+	return true;
 }

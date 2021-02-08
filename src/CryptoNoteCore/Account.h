@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -31,6 +32,11 @@ namespace CryptoNote {
   public:
     AccountBase();
     void generate();
+	void generateDeterministic();
+	Crypto::SecretKey generate_key(const Crypto::SecretKey& recovery_key = Crypto::SecretKey(), bool recover = false, bool two_random = false);
+
+    static void generateViewFromSpend(Crypto::SecretKey&, Crypto::SecretKey&, Crypto::PublicKey&);
+    static void generateViewFromSpend(Crypto::SecretKey&, Crypto::SecretKey&);
 
     const AccountKeys& getAccountKeys() const;
     void setAccountKeys(const AccountKeys& keys);

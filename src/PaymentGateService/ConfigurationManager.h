@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2017-2019, The CROAT.community developers
 //
 // This file is part of Bytecoin.
 //
@@ -21,7 +22,6 @@
 #include "PaymentServiceConfiguration.h"
 #include "P2p/NetNodeConfig.h"
 #include "RpcNodeConfiguration.h"
-#include "CoinBaseConfiguration.h"
 
 namespace PaymentService {
 
@@ -35,7 +35,6 @@ public:
   CryptoNote::NetNodeConfig netNodeConfig;
   CryptoNote::CoreConfig coreConfig;
   RpcNodeConfiguration remoteNodeConfig;
-  CoinBaseConfiguration coinBaseConfig;
 };
 
 } //namespace PaymentService
